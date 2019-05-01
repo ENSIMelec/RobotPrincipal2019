@@ -1,0 +1,97 @@
+asservissement {
+	; Temps d’attente entre chaque boucle d’asservissement, en ms.
+	; Attention : une valeur trop élevée sature le bus I2C !
+	delta_asserv 	10
+
+	temps_match 	100
+
+	nbAX12 			4
+
+	ipServeur		127.0.0.1
+
+	;PC Etienne (dongle)
+	;ipServeur  	172.27.1.57
+
+	;PC Etienne (sans dongle)
+	;ipServeur  	172.27.1.117	
+
+	PC Quentin (sans dongle)
+	;ipServeur  		172.27.1.128
+
+	;PC Raphael
+	ipServeur 172.30.1.111
+	
+	;PC Baptiste
+	;ipServeur 172.30.1.85
+	
+	;PC Pierre	
+	;ipServeur 172.30.1.101
+
+	
+	;Raspberry
+	;ipServeur  	172.27.1.133
+	;port 			1111
+
+	port 			2222
+
+	; Réglages du PID
+
+	;pid d'angle en angle
+	;pid_kpa 7
+	;pid_kia 0.08
+	;pid_kda 45
+	pid_kpa 9
+	pid_kia 0.08
+	pid_kda 50
+	
+	;pid d'angle en déplacement
+	;pid_kpdep 11
+	;pid_kidep 0
+	;pid_kddep 9
+	;vitesse 40 p:1.3
+	pid_kpdep 		20
+	pid_kidep 		0.01
+	pid_kddep 		9
+
+	; pid de position
+	;pid_kppos 0.004
+	;pid_kipos 0
+	;pid_kdpos 0
+	pid_kppos 		2
+	pid_kipos 		0
+	pid_kdpos 		1
+
+	;pid vitesse moyenne
+	pid_kpV_medium 	0.1
+	pid_kiV_medium 	0.005
+	pid_kdV_medium 	0
+
+	;Ne sert plus
+	;pid vitesse faible
+	pid_kpV_low 	0.2
+	pid_kiV_low 	0.08
+	pid_kdV_low 	0
+
+	;pid vitesse haute
+	pid_kpV_high 	0.5
+	pid_kiV_high 	0.05
+	pid_kdV_high 	0
+
+	; Réglages coefs déplacement
+	;CoeffGLong 		0.219629375428964
+	;CoeffDLong 		0.219078046554085
+	;CoeffGLong 		0,21944261575598
+	;CoeffDLong 		0,218197687104517
+	CoeffGLong 		0.2132196162046908
+	CoeffDLong 		0.2134471718249733
+
+	;CoefAngle Solveur
+	;CoeffAngl 0.0511967234097018
+	;CoeffAngl 		0.053001500000000
+	CoeffAngl 0.0511967234097018
+
+	; Adresses cartes arduino
+	I2C_SERVOS 6
+	I2C_LANCEUR 7
+	I2C_MOTEURS 8
+}

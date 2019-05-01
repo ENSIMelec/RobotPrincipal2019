@@ -1,0 +1,1 @@
+{"Points":[{"commentaire":"","type":"RecalageXY","X":0,"Y":1000,"angle":90},{"commentaire":"","type":"Deplacement","X":500,"Y":1000,"deltaDeplacement":10,"deltaAngle":1.0,"vitesse":400,"sens":"avant","blocage":"avant","coefCourbe":0.0,"lissage":false,"derapage":false,"timeOut":0,"action":"null","attAction":false}]}

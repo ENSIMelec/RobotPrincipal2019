@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="jcabi-ssh-1.6-jar-with-dependencies">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/lib/jcabi-ssh-1.6-jar-with-dependencies.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

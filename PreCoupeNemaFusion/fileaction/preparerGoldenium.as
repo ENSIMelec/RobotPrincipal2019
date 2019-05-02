@@ -7,3 +7,6 @@ A 4 250 240 1000
 
 #déploiement des pinces
 A 1 450 100 1000
+
+#points
+P 20 0 0 0

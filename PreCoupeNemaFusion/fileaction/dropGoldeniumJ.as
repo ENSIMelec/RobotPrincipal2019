@@ -12,3 +12,6 @@ A 1 450 100 200
 
 #ouverture des pinces
 A 3 160 240 1000
+
+#points
+P 24 0 0 0

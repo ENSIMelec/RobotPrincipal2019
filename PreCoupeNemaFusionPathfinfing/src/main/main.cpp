@@ -275,8 +275,12 @@ void jouerMatch(Asservissement2018& asserv, Strategie& strat, MoteurManager *p_m
 				//Blocage des noeuds autour de celui qu'on détecte
 				int XNodeToBlock, YNodeToblock;
 				lid->cartesianFromLidar(&XNodeToBlock, &YNodeToblock);
+				
+
 				cout << "Point bloque : " << XNodeToBlock << " ; " << YNodeToblock << endl;
 				Point robotBloqueIci = asserv.getCoordonnees();
+
+				/*
 				if(robotBloqueIci.getX() >= 0 && strat.getPointActuel().getSens() == 0){
 					XNodeToBlock = robotBloqueIci.getX() - XNodeToBlock;
 					YNodeToblock = robotBloqueIci.getY() - YNodeToblock;
@@ -285,6 +289,9 @@ void jouerMatch(Asservissement2018& asserv, Strategie& strat, MoteurManager *p_m
 					XNodeToBlock = robotBloqueIci.getX() + XNodeToBlock;
 					YNodeToblock = robotBloqueIci.getY() + YNodeToblock;
 				}
+				*/
+
+				asserv.PositionAbs(XNodeToBlock, YNodeToblock, &XNodeToblock, &YNodeToblock);
 				
 				cout << "Point bloque : " << XNodeToBlock << " ; " << YNodeToblock << endl;
 

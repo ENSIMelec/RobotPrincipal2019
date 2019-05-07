@@ -17,7 +17,7 @@ const char* ssid = "MilhabotGaming";
 const char* password = "****";
 //Pour avec téléphone Damien
 //const char* ssid = "Honor 7X";
-//const char* password = "69f73dc8fd79";
+//const char* password = "****";
 
 ESP8266WebServer server(80); // on instancie un serveur ecoutant sur le port 80
 

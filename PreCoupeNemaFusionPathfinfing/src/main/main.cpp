@@ -68,13 +68,103 @@ void lidar(Lidar *lidar){
 }
 
 void electronThreadFunc(){
-	system("curl 172.30.1.20/on");
+	int sockfd = socket(AF_INET,SOCK_DGRAM,IPPROTO_UDP);
+	struct sockaddr_in electron;
+	electron.sin_family = AF_INET;
+    electron.sin_port = htons(5757);
+    electron.sin_addr.s_addr = inet_addr("172.30.1.20");
+    char * paquetRecu;
+    string str_deb = "On";
+    string str_fin = "Off";
+
+    socklen_t addr = sizeof(electron);
+
+	/*Envoi de la commande de lancement*/
+	int lancement = sendto(sockfd, str_deb.c_str(), str_deb.size()+1, 0,(struct sockaddr *)&electron, addr);
+	if(lancement <= 0){
+		cout << "ERREUR LORS DE L'ENVOI" << endl;
+	}else{
+		cout << "Envoi réussi" << endl; 
+	}
+
+	/*Réception de la confirmation*/
+	int retour_deb =  recvfrom(sockfd, paquetRecu, 25, 0, (struct sockaddr *)&electron, &addr);
+	if(retour_deb <= 0){
+		cout << "Erreur lors de la réception" << endl;
+	}
+	else{
+		cout << "Message recu : " << paquetRecu << endl;
+	}
+
+	while(strcmp(paquetRecu, "OK") != 0){
+		sendto(sockfd, str_deb.c_str(), str_deb.size()+1, 0,(struct sockaddr *)&electron, addr);
+		recvfrom(sockfd, paquetRecu, 25, 0, (struct sockaddr *)&electron, &addr);
+	}
+
+
 	sleepMillis(10000);
-	system("curl 172.30.1.20/off");
+	paquetRecu = "";
+
+	/*Envoi de la commande de fin*/
+	int fin = sendto(sockfd, str_fin.c_str(), str_fin.size()+1, 0,(struct sockaddr *)&electron, addr);
+	if(fin <= 0){
+		cout << "ERREUR LORS DE L'ENVOI" << endl;
+	}else{
+		cout << "Envoi réussi" << endl; 
+	}
+
+	/*Réception de la confirmation*/
+	int retour_fin =  recvfrom(sockfd, paquetRecu, 25, 0, (struct sockaddr *)&electron, &addr);
+	if(retour_fin <= 0){
+		cout << "Erreur lors de la réception" << endl;
+	}
+	else{
+		cout << "Message recu : " << paquetRecu << endl;
+	}
+
+	while(strcmp(paquetRecu, "OK") != 0){
+		sendto(sockfd, str_fin.c_str(), str_fin.size()+1, 0,(struct sockaddr *)&electron, addr);
+		recvfrom(sockfd, paquetRecu, 25, 0, (struct sockaddr *)&electron, &addr);
+	}
+
 }
 
 void experienceThreadFunc(){
-	system("curl 172.30.1.30/on");
+	/*Déclaration de variables pour recevoir les datagrammes*/
+	int sockfd = socket(AF_INET,SOCK_DGRAM,IPPROTO_UDP);
+	struct sockaddr_in experience;
+	experience.sin_family = AF_INET;
+    experience.sin_port = htons(5757);
+    experience.sin_addr.s_addr = inet_addr("172.30.1.30");
+    char * paquetRecu;
+    string str = "On";
+
+
+	//system("curl 172.30.1.30/on");
+	/*Envoi de la commande*/
+	int envoi = sendto(sockfd, str.c_str(), str.size()+1, 0,(struct sockaddr *)&experience, sizeof(experience));
+	if(envoi <= 0){
+		cout << "ERREUR LORS DE L'ENVOI" << endl;
+	}else{
+		cout << "Envoi réussi" << endl; 
+	}
+
+	/*Réception de la confirmation*/
+	socklen_t addr = sizeof(experience);
+	int retour =  recvfrom(sockfd, paquetRecu, 25, 0, (struct sockaddr *)&experience, &addr);
+	if(retour <= 0){
+		cout << "Erreur lors de la réception" << endl;
+	}
+	else{
+		cout << "Message recu : " << paquetRecu << endl;
+	}
+
+	while(strcmp(paquetRecu, "OK") != 0){
+		sendto(sockfd, str.c_str(), str.size()+1, 0,(struct sockaddr *)&experience, sizeof(experience));
+		recvfrom(sockfd, paquetRecu, 25, 0, (struct sockaddr *)&experience, &addr);
+	}
+
+
 }
 
 ///////////////////////////// PROGRAMME PRINCIPAL ///////////////////////////////

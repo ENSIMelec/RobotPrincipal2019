@@ -1,148 +1,114 @@
-#include <Wire.h>
- /*
- * M1 = MG
- * M2 = MD
- * in1 = AV
- * in2 = ARR
- */
-#define MGinARR 6//moteur gauche arrière
-#define MGinAV  9 //moteur gauche avant
-#define MDinAV  10  //moteur droit avant 
-#define MDinARR 11  //moteur droit arrière
+ #include <Wire.h>
 
-#define AV 1 //indexs pour les tableaux de retour de la fonction de conversion
-#define ARR 0
+//Moteur Gauche
+#define enA_Gauche 6  //Marron
+#define in2_Gauche 10 //Inutile
+#define in1_Gauche 7 //Noire
 
-#define END 7
-#define ENG 8
+//Moteur Droite
+#define enB_Droite 9   //Jaune
+#define in4_Droite 8  //Inutile
+#define in3_Droite 11  //Vert
 
-#define GAUCHE 0 
-#define DROIT 1
+#define ADDR_ARDUINO 8
 
-#define ADDR_ARDUINO    8
+int PWM_Gauche, PWM_Droite; // 0 ... 255
+int sens_Gauche, sens_Droite; // 0 = avant / 1 = arriere
 
-#define CMD_RESET 1
-#define DISABLE_WATCHDOG 2
-#define ENABLE_WATCHDOG 3
-
-
-
- int commandG[2];
- int commandD[2];
-
-volatile int nbTicD; //compteur de ticks codeur droit
-volatile int nbTicG; // compteur de ticks codeur gauche 
-
-volatile bool cmdRcv = false;
-volatile int8_t cmdM[2];
-
-void setup()
-{
-  Serial.begin(9600);
-  Wire.begin(ADDR_ARDUINO);//adresse i2c en 8
+void setup() {
+  Serial.begin(115200);
+  Wire.begin(ADDR_ARDUINO);
   Wire.onReceive(recv);
-  //Wire.onRequest(sendData);
-  
-  pinMode(MGinARR, OUTPUT);
-  pinMode(MDinARR, OUTPUT);
-  pinMode(MGinAV, OUTPUT);
-  pinMode(MDinAV, OUTPUT);
-  pinMode(END, OUTPUT);
-  pinMode(ENG, OUTPUT);
-  pinMode(13, OUTPUT);
 
+  PWM_Gauche = 0; PWM_Droite = 0;
+  sens_Gauche = 0; sens_Droite = 0;
 
-  digitalWrite(END, HIGH);
-  digitalWrite(ENG, HIGH);
+  pinMode(enA_Gauche, OUTPUT);
+  pinMode(enB_Droite, OUTPUT);
+  pinMode(in1_Gauche, OUTPUT);
+  pinMode(in2_Gauche, OUTPUT);
+  pinMode(in3_Droite, OUTPUT);
+  pinMode(in4_Droite, OUTPUT);
+
+  //arrêt des moteurs
+  digitalWrite(in1_Gauche, LOW);
+  digitalWrite(in2_Gauche, LOW);
+  digitalWrite(in3_Droite, LOW);
+  digitalWrite(in4_Droite, LOW);
+
+  analogWrite(enA_Gauche, PWM_Gauche);
+  analogWrite(enB_Droite, PWM_Droite);
+  //INSA RENNES 
+  //TCCR0B = (TCCR0B & 0b11111000) | 1;
+  //TCCR1B = (TCCR1B & 0b11111000) | 1;
+  //TCCR2B = (TCCR2B & 0b11111000) | 1;
   
-  //digitalWrite(13, HIGH);
-  Serial.print("STARTING");
+  //erial.println("STARTING");
 }
-  //int i = 0;
-void loop()
-{
-  delay(5000);
-  //Serial.println(Distance_ultason(Trig1,Echo1));
-}
 
+void loop() { delay(1); }
 
-void gauche(int inAV, int inARR){
- 
-   analogWrite(MGinAV, inAV);
-  analogWrite(MGinARR, inARR);
+void recv(int numBytes) {
+  if(numBytes == 4) {
+    PWM_Gauche = Wire.read();
+    PWM_Droite = Wire.read();
+    sens_Gauche = Wire.read();
+    sens_Droite = Wire.read();
 
- }
- 
-void droit(int inAV, int inARR){
-  
-   analogWrite(MDinAV, inAV);
-  analogWrite(MDinARR, inARR);
+    //Serial.print("Gauche -> "); Serial.print((sens_Gauche == 2 ? "marche arriere : " : (sens_Gauche == 1 ? "marche avant : " : "arret : "))); Serial.println(PWM_Gauche);
+    //Serial.print("Droite -> "); Serial.print((sens_Droite == 2 ? "marche arriere : " : (sens_Droite == 1 ? "marche avant : " : "arret : "))); Serial.println(PWM_Droite);
 
- }
- 
- 
-
- void convertI2cEngineCommandToAnalogCommand(uint8_t i2c, int* res)
- {
-   /*
-   * 
-    * marche arrière 0..127 → 255..1
-  * stop 128 → 0
-    * marche avant 129..255 → 0..255
-  */
-   //Serial.print("\nreçu");
-    //Serial.print(i2c);
-     int tmp = i2c - 128;
-   res[ARR] = tmp < 0 ? -tmp*2 -1: 0;
-   //Serial.print("\nMoteur arrière :");
-  //Serial.print(res[ARR]);
-    res[AV] = tmp > 0 ? tmp*2 +1: 0;
- 
-
-     //Serial.print("\nMoteur avant :");
-     //Serial.print(res[AV]);
- }
-
-  bool isBetween(int min, int val, int max)
- {
-        if(val < min || val > max)
-                return false;
-        return true;
- }
- 
-
- void recv(int bytes){//valeurs des moteurs reçues de la rasp
-    /*
-     * recéption moteur gauche puis droit
-     */
- 
-  
-    //delay(150);     
-    //digitalWrite(13, HIGH);    
-   //Serial.print("Donnee recue : ");
-  
-     if(bytes == 2)
-     {
-       //Serial.print("Donnee recue : ");
-      /* ajouté dans l'interruption dsans cette version (précédemment dans le main) */
-
-      convertI2cEngineCommandToAnalogCommand(Wire.read(), commandG);
-      convertI2cEngineCommandToAnalogCommand(Wire.read(), commandD);
-      if(isBetween(0, commandG[AV], 255) && isBetween(0, commandG[ARR], 255))
-         gauche(commandG[AV], commandG[ARR]);
-      else
-        gauche(128, 128);
-         
-      if(isBetween(0, commandD[AV], 255) && isBetween(0, commandD[ARR], 255))
-          droit(commandD[AV], commandD[ARR]);
-      else
-         droit(128, 128);
-     }
-
-     while(Wire.available())Wire.read();
+    Serial.print("Gauche -> (");
+    Serial.print(sens_Gauche);
+    Serial.print(") ");
+    switch(sens_Gauche) {
+      case 1: //Roue Gauche Marche Avant
+        digitalWrite(in1_Gauche, LOW);
+        digitalWrite(in2_Gauche, HIGH);
+        //Serial.print("marche avant : ");
+        break;
+      case 2: //Roue Gauche Marche Arriere
+        digitalWrite(in1_Gauche, HIGH);
+        digitalWrite(in2_Gauche, LOW);
+        //Serial.print("marche arriere : ");
+        break;
+      case 0:
+      default: //Arrêt du moteur (frein)
+        digitalWrite(in1_Gauche, HIGH);
+        digitalWrite(in2_Gauche, HIGH);
+        //Serial.print("arret : ");
+        break;
+    }
+    //Serial.println(PWM_Gauche);
     
- 
- 
-  //digitalWrite(13, LOW);   
-     
- }
+    //Serial.print("Droite -> (");
+    //Serial.print(sens_Droite);
+    //Serial.print(") ");
+    switch(sens_Droite) {
+      case 1: //Roue Droite Marche Avant
+        digitalWrite(in3_Droite, LOW);
+        digitalWrite(in4_Droite, HIGH);
+        //Serial.print("marche avant : ");
+        break;
+      case 2: //Roue Droite Marche Arriere
+        digitalWrite(in3_Droite, HIGH);
+        digitalWrite(in4_Droite, LOW);
+        //Serial.print("marche arriere : ");
+        break;
+      case 0:
+      default: //Arrêt du moteur (frein)
+        digitalWrite(in3_Droite, HIGH);
+        digitalWrite(in4_Droite, HIGH);
+        //Serial.print("arret : ");
+        break;
+    }
+    //Serial.println(PWM_Droite);
+    //Serial.print("\n");
+    analogWrite(enA_Gauche, PWM_Gauche);
+    analogWrite(enB_Droite, PWM_Droite);
+  }
+  //Stream.flush();
+  while(Wire.available()) Wire.read();
+}
+
+

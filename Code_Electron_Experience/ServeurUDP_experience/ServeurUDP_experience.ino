@@ -1,96 +1,128 @@
 #include <ESP8266WiFi.h>
-#include <WiFiClient.h>
-#include <ESP8266WebServer.h>
+#include <WiFiUDP.h>
 #include <Adafruit_NeoPixel.h>
+#include <String.h>
 
-//Avec Roballs
-//const char* ssid = "ENSIM'Elec";                // SSID du Wifi (si avec téléphone damien: Honor 7X)
-//const char* password = "****";  // mot de passe du WiFi (si avec téléphone damien: 69f73dc8fd79)
-//Avec Kiroulpa
-//const char* ssid = "Kiroulpa";
-//const char* password = "****";
-//Avec MilhabotGaming
-const char* ssid = "MilhabotGaming";
-const char* password = "****";
-//Pour avec téléphone Damien
-//const char* ssid = "Honor 7X";
-//const char* password = "****";
+int status = WL_IDLE_STATUS;
+const char* ssid = "MilhabotGaming";  //  your network SSID (name)
+//const char* ssid = "KiRoulPresque";  //  your network SSID (name)
 
-ESP8266WebServer server(80); // on instancie un serveur ecoutant sur le port 80
+const char* pass = "Milharausecours!2018";       // your network password
 
+unsigned int localPort = 5757;      // local port to listen for UDP packets
+
+char packetBuffer[512]; //buffer to hold incoming and outgoing packets
+
+bool doAnimations = false;
 //LED strip declaration
 const int NB_LED = 9;
 const int PIN_LED = D3;
 Adafruit_NeoPixel ledStrip = Adafruit_NeoPixel(NB_LED, PIN_LED); //number of LEDs, pin
 
-void setup() {
+// A UDP instance to let us send and receive packets over UDP
+WiFiUDP Udp;
 
-  Serial.begin(9600);
-  Serial.println("begin");
-  /*led strip initialisation*/
-  pinMode(PIN_LED, OUTPUT);
-  ledStrip.begin();
-  ledStrip.setBrightness(64); //0 to 255
-
-  // on affiche l'adresse MAC de la carte
-  Serial.println("");
-  Serial.print("MAC address: ");
-  Serial.println(WiFi.macAddress());
-  
-  /*wifi init*/
+void setup()
+{
+  // Open serial communications and wait for port to open:
+  Serial.begin(115200);
   WiFi.hostname("experience");
-  // on demande la connexion au WiFi
-  WiFi.begin(ssid, password);
-  Serial.println("");
-  // on attend d'etre connecte au WiFi avant de continuer
+  // setting up Station AP
+  WiFi.begin(ssid, pass);
+ 
+  // Wait for connect to AP
+  Serial.print("[Connecting]");
+  Serial.print(ssid);
+  int tries=0;
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     Serial.print(".");
-  }
-  
-  // on affiche l'adresse IP qui nous a ete attribuee
-  Serial.println("");
-  Serial.print("IP address: ");
-  Serial.println(WiFi.localIP());
-  
-  // on definit ce qui doit etre fait lors de l'appel des routes (route = /on par exemple)
-
-  // activation du bandeau de leds
-  server.on("/on", [](){
-    server.send(200, "text/plain", "Experience is ON");
-    Serial.println("Experience is ON");
-    //animations
-    for(int i=0; i<5; i++) {
-      alternateColor(0xFF0000, 0x0000FF, 500);
-      delay(1000);
-      randomColorFill(500);
-      delay(1000);
-      middleFill(0xFF000, 500);
-      delay(1000);
-      randomPositionFill(0x0000FF, 500);
-      delay(1000);
-      sideFill(0xFF0000, 500);
-      delay(1000);
+    tries++;
+    if (tries > 60){
+      break;
     }
-    
-  }); 
+  }
+  Serial.println();
 
-  // désactivation du bandeau de leds
-  server.on("/off", [](){
-    clearStrip();
-    server.send(200, "text/plain", "Experience is OFF");
-    Serial.println("Experience is OFF");
-  });
-  
-  // on commence a ecouter les requetes venant de l'exterieur
-  server.begin();
-  Serial.println("HTTP server started");
-  
+  Serial.println("Connected to wifi");
+  Serial.print("Udp server started at port ");
+  Serial.println(localPort);
+  Udp.begin(localPort);
 }
 
 void loop() {
-  // on appelle le handle pour traiter les requêtes
-  server.handleClient();
+
+  int packetSize = Udp.parsePacket();
+  if(packetSize)
+  {
+    Serial.print("Received packet of size ");
+    Serial.println(packetSize);
+    Serial.print("From ");
+    IPAddress remote = Udp.remoteIP();
+    for (int i =0; i < 4; i++)
+    {
+      Serial.print(remote[i], DEC);
+      if (i < 3)
+      {
+        Serial.print(".");
+      }
+    }
+    Serial.print(", port ");
+    Serial.println(Udp.remotePort());
+
+    // read the packet into packetBufffer
+    Udp.read(packetBuffer,UDP_TX_PACKET_MAX_SIZE);
+
+    int len = Udp.read(packetBuffer, 255);
+    if (len > 0)
+    {
+      packetBuffer[len] = 0;
+    }
+    Serial.printf("UDP packet contents: %s\n", packetBuffer);
+    
+    String message = String(packetBuffer);
+
+    
+    //Start experience
+    if(!message.compareTo("On")) {
+      Serial.println("Experience is ON");
+      char replyPacket[] = "Message On received"; 
+      doAnimations = true;
+    }
+    //Stop experience
+    else if(!message.compareTo("Off")) {
+          Serial.println("Experience is OFF");
+          char replyPacket[] = "Message Off received"; // a reply string to send back
+          doAnimations = false;
+    }
+    else Serial.println("Error: not a matching command...");
+
+    // send back a reply, to the IP address and port we got the packet from
+    Serial.println("Contents:");
+    Serial.println(packetBuffer);
+    Udp.beginPacket(Udp.remoteIP(), Udp.remotePort());
+    Udp.write("OK");
+    Udp.endPacket();
+
+    if(doAnimations){
+      //animations
+      for(int i=0; i<5; i++) {
+        alternateColor(0xFF0000, 0x0000FF, 500);
+        delay(250);
+        randomColorFill(500);
+        delay(250);
+        middleFill(0xFF000, 500);
+        delay(250);
+        randomPositionFill(0x0000FF, 500);
+        delay(250);
+        sideFill(0xFF0000, 500);
+        delay(250);
+      }
+    } else {
+      clearStrip();
+    }
+    
+}
 }
 
 /************************ Animations for led strip ************************/

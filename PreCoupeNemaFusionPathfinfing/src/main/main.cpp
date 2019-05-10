@@ -100,33 +100,6 @@ void electronThreadFunc(){
 		sendto(sockfd, str_deb.c_str(), str_deb.size()+1, 0,(struct sockaddr *)&electron, addr);
 		recvfrom(sockfd, paquetRecu, 25, 0, (struct sockaddr *)&electron, &addr);
 	}
-
-
-	sleepMillis(10000);
-	paquetRecu = "";
-
-	/*Envoi de la commande de fin*/
-	int fin = sendto(sockfd, str_fin.c_str(), str_fin.size()+1, 0,(struct sockaddr *)&electron, addr);
-	if(fin <= 0){
-		cout << "ERREUR LORS DE L'ENVOI" << endl;
-	}else{
-		cout << "Envoi réussi" << endl; 
-	}
-
-	/*Réception de la confirmation*/
-	int retour_fin =  recvfrom(sockfd, paquetRecu, 25, 0, (struct sockaddr *)&electron, &addr);
-	if(retour_fin <= 0){
-		cout << "Erreur lors de la réception" << endl;
-	}
-	else{
-		cout << "Message recu : " << paquetRecu << endl;
-	}
-
-	while(strcmp(paquetRecu, "OK") != 0){
-		sendto(sockfd, str_fin.c_str(), str_fin.size()+1, 0,(struct sockaddr *)&electron, addr);
-		recvfrom(sockfd, paquetRecu, 25, 0, (struct sockaddr *)&electron, &addr);
-	}
-
 }
 
 void experienceThreadFunc(){

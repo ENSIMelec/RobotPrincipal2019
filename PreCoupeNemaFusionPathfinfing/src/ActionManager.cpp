@@ -50,8 +50,8 @@ void ActionManager::action(string filname) {
 				client.sendMessage("I Stepper hauteur" + to_string(angleAction));
 				break;
 			case 'P':
-				client.sendMessage("I Ajout de "+to_string(numActionneur)+" points");
-				client.addPoints(numActionneur);
+				client.sendMessage("I Ajout de "+to_string(numActionneur)+" points avec une probabilité de " + to_string(angleAction) + " % ");
+				client.addPoints(numActionneur, angleAction);
 				break;
 			case 'A':
 				tempsAction -= AX12.AX12Action(numActionneur, angleAction, forceAction); //On effectue l'action AX12, on met à jour le temps qu'il reste avant la fin de l'action

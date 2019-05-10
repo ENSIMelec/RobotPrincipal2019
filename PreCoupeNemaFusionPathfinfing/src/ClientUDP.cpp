@@ -25,7 +25,7 @@ bool ClientUDP::sendMessage(string str){
     sendto(sockfd, str.c_str(), str.size()+1, 0,(struct sockaddr *)&serveurRobot, sizeof(serveurRobot));
 		if (ret <= 0)
 		{
-			cout << "Erreur lors de l'envoie au serveur de : ["<< str <<"]"<<endl;
+			cout << "Erreur lors de l'envoi au serveur de : ["<< str <<"]"<<endl;
 			return false;
 		}else{
 			//cout << "Envoie au serveur de : ["<< str <<"]"<<endl;
@@ -35,7 +35,7 @@ bool ClientUDP::sendMessage(string str){
 
 }
 
-int ClientUDP::calculPoints(int nbPointsTheorique) {
+/*int ClientUDP::calculPoints(int nbPointsTheorique) {
     if(nbPointsTheorique <= 10) { // 0-10
         return nbPointsTheorique;
     } else if(nbPointsTheorique <= 20) { //11-20
@@ -71,18 +71,31 @@ int ClientUDP::calculPoints(int nbPointsTheorique) {
     } else { // > 500
         return nbPointsTheorique - 80;
     }
-}
+
+    return points;
+}*/
 
 
-void ClientUDP::addPoints(int pts){
-    points+=pts;
+void ClientUDP::addPoints(int pts, int proba){
+    float probabPourcentage;
+
+    if(proba == 0){
+        points+=pts;
+    }else
+    {
+        probabPourcentage = proba/100;
+        points = points + static_cast<int>(pts*probabPourcentage);
+    }
     //sendMessage("P "+to_string(points));
     //cout << "Points :" << points << endl;
-    int pointsSeuil = calculPoints(points);
-    sendMessage("P "+to_string(pointsSeuil));
+
+    /*int pointsSeuil = calculPoints(points);*/      //Fonction commentée et rendue inutile
+    sendMessage("P "+to_string(points));
     cout << "Points :" << pointsSeuil << endl;
 }
 
+
+/*N'est jamais appelée mais attention si elle est utilisée, elle pourrait fausser la prédiction*/
 void ClientUDP::setPoints(int pts){
     points=pts;
     sendMessage("P "+to_string(points));
@@ -90,5 +103,6 @@ void ClientUDP::setPoints(int pts){
 }
 
 int ClientUDP::getPoints(){
-    return calculPoints(points);
+    /*return calculPoints(points);*/
+    return points; 
 }

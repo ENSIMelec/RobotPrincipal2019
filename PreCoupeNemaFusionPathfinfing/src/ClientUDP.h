@@ -15,7 +15,7 @@ public:
     ClientUDP(std::string ip, int port);
     bool sendMessage(std::string str);
     void setPoints(int pts);
-    void addPoints(int pts);
+    void addPoints(int pts, int proba);
     int getPoints();
     int points;
 

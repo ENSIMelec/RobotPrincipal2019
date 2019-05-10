@@ -4,10 +4,10 @@ Map::Map(){}
 
 Map::Map(int facteur)
 {
-    this->mapping = vector<Noeud*>(77);
+    this->mapping = vector<Noeud*>(240);
     this->cote = facteur;
 
-    mapping[0] = new Noeud(true, new Coordonnee(-1025*cote, 1190), 0);
+    /*mapping[0] = new Noeud(true, new Coordonnee(-1025*cote, 1190), 0);
     mapping[1] = new Noeud(true, new Coordonnee(-1025*cote, 1015), 1);
     mapping[2] = new Noeud(true, new Coordonnee(-1025*cote, 815), 2);
     mapping[3] = new Noeud(true, new Coordonnee(-1025*cote, 615), 3);
@@ -38,7 +38,7 @@ Map::Map(int facteur)
     mapping[28] = new Noeud(true, new Coordonnee(-225*cote, 1190), 28);
     mapping[29] = new Noeud(true, new Coordonnee(-225*cote, 1015), 29);
     mapping[30] = new Noeud(true, new Coordonnee(-225*cote, 815), 30);
-    mapping[31] = new Noeud(true, new Coordonnee(-225*cote, 615), 31); // Changement de coordonnées X = -170 réel emplacement
+    mapping[31] = new Noeud(true, new Coordonnee(-225*cote, 615), 31);
     mapping[32] = new Noeud(true, new Coordonnee(-225*cote, 460), 32);
     mapping[33] = new Noeud(true, new Coordonnee(-225*cote, 340), 33);
     mapping[34] = new Noeud(true, new Coordonnee(-225*cote, 220), 34);
@@ -83,7 +83,15 @@ Map::Map(int facteur)
     mapping[73] = new Noeud(true, new Coordonnee(225*cote, 615), 73);
     mapping[74] = new Noeud(true, new Coordonnee(225*cote, 460), 74);
     mapping[75] = new Noeud(true, new Coordonnee(225*cote, 340), 75);
-    mapping[76] = new Noeud(true, new Coordonnee(225*cote, 220), 76);
+    mapping[76] = new Noeud(true, new Coordonnee(225*cote, 220), 76);*/
+
+    int nbcases = 0;
+    for(int j = 300 ; j <= 1200; j+100){
+        for(int i=-1025 ; i <= 925; i+100){
+            mapping[nbcases] = new Noeud(true, new Coordonnee(i*cote, j), nbcases);
+            nbcases++;
+        }
+    }
 
 
     //Ajoute les voisins 

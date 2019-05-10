@@ -504,18 +504,15 @@ void Asservissement2018::asservVitesse(double vitConsigneG, double vitConsigneD)
 	cmdG = PID_G;
 	cmdD = PID_D;
 
-	if(pointActuel.getDerapage()== true){//détection de dérapage
+	if(pointActuel.getDerapage() == true){//détection de dérapage
 		cout <<"Wait Burn, Gauche : "<< abs(cmdG) <<" vitG: "<<abs(vitG)<<" ,Droite: "<< abs(cmdD)<<" vitD: "<<abs(vitD)<<endl;
-		if(abs(cmdG)>=100 && abs(vitG)<5){
+		if(abs(vitG)<5 && abs(vitD)<5){
 			cmdG=0;
-			cout<<"Dérapage Gauche"<<endl;
-		}
-
-		if(abs(cmdD)>=100 && abs(vitD)<5){
 			cmdD=0;
-			cout<<"Dérapage Droite"<<endl;
+			cout<<"Dérapage terminé"<<endl;
 		}
 
+		
 		if(cmdG==0 && cmdD==0){//Dérapage des deux cotés, on est contre la bordure, prêt pour le recalage
 			asservFini = true;
 		}
@@ -718,13 +715,4 @@ Point Asservissement2018::getCoordonnees() {
 
 void Asservissement2018::setVitessePointActuel(int newVitesse){
 	pointActuel.setVitesse(newVitesse);
-}
-
-void Asservissement2018::PositionAbs(int xRelatif, int yRelatif, int *xAbso, int *yAbso)
-{
-	double teta = (angle - 90) / 180 * M_PI;
-	double cosTeta = cos(teta);
-	double sinTeta = sin(teta);
-	*xAbso = (int)(cosTeta * xRelatif - sinTeta * yRelatif + x);
-	*yAbso = (int)(sinTeta * xRelatif + cosTeta * yRelatif + y);
 }

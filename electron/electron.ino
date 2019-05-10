@@ -8,16 +8,16 @@ byte relOFF[] = {0xA0, 0x01, 0x00, 0xA1}; //Hex command to send to serial for cl
 
 //Avec Roballs
 //const char* ssid = "ENSIM'Elec";                // SSID du Wifi (si avec téléphone damien: Honor 7X)
-//const char* password = "milharausecours!2018";  // mot de passe du WiFi (si avec téléphone damien: 69f73dc8fd79)
+//const char* password = "****";  // mot de passe du WiFi (si avec téléphone damien: 69f73dc8fd79)
 //Avec Kiroulpa
 //const char* ssid = "Kiroulpa";
-//const char* password = "Milharausecours!2018";
+//const char* password = "****";
 //Avec MilhabotGaming
 const char* ssid = "MilhabotGaming";
-const char* password = "Milharausecours!2018";
+const char* password = "****";
 //Pour avec téléphone Damien
 //const char* ssid = "Honor 7X";
-//const char* password = "69f73dc8fd79";
+//const char* password = "****";
 
 ESP8266WebServer server(80); // on instancie un serveur ecoutant sur le port 80
 

@@ -7,6 +7,7 @@ ActionManager::ActionManager(int i2c_Servos, int i2c_Stepper, int nbAX12, Client
 	client(udp), servos(i2c_Servos), stepper(i2c_Stepper),  AX12(nbAX12)
 {
 	stepper.goHome();
+	servos.servoInitialisation();
 	printf("Constructeur action");
 }
 
@@ -50,7 +51,7 @@ void ActionManager::action(string filname) {
 				client.sendMessage("I Stepper hauteur" + to_string(angleAction));
 				break;
 			case 'P':
-				client.sendMessage("I Ajout de "+to_string(numActionneur)+" points avec une probabilité de " + to_string(angleAction) + " % ");
+				client.sendMessage("I Ajout de "+to_string(numActionneur)+" points");
 				client.addPoints(numActionneur, angleAction);
 				break;
 			case 'A':

@@ -22,7 +22,7 @@ void SerialCodeurManager::Initialisation()
 {
 	cout << "Initialisation codeur" << endl;
 
-	if ((fd = serialOpen ("/dev/ttyUSB1", 115200)) < 0)
+	if ((fd = serialOpen ("/dev/ttyUSB1", 115200)) < 0) //A REMETTRE A 1 PLUS TARD
 	{
     	fprintf(stderr, "Unable to open serial device: %s\n", strerror (errno));
 		exit(3);

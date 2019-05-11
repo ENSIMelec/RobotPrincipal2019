@@ -22,8 +22,8 @@ Elle va alors changer IN1/IN2 en fonction du sens, et ENA en fonction de la comm
 
 // Changement de consigne sur les moteurs
 void MoteurManager::setConsigne(int PWMGauche, int PWMDroite) {
-	controleConsigne(&PWMGauche*1);
-	controleConsigne(&PWMDroite*1);
+	controleConsigne(&PWMGauche);
+	controleConsigne(&PWMDroite);
 	ordreGauche = (uint8_t) abs(PWMGauche);
 	ordreDroite = (uint8_t) abs(PWMDroite);
 	sensGauche 	= (uint8_t) (PWMGauche < 0 ? 2 : (PWMGauche > 0 ? 1 : 0));
@@ -33,14 +33,14 @@ void MoteurManager::setConsigne(int PWMGauche, int PWMDroite) {
 }
 
 void MoteurManager::setConsigneGauche(int PWMGauche) {
-	controleConsigne(&PWMGauche*1);
+	controleConsigne(&PWMGauche);
 	ordreGauche = (uint8_t) abs(PWMGauche);
 	sensGauche 	= (uint8_t) (PWMGauche < 0 ? 2 : (PWMGauche > 0 ? 1 : 0));
 	apply();
 	return;
 }
 void MoteurManager::setConsigneDroite(int PWMDroite) {
-	controleConsigne(&PWMDroite*1);
+	controleConsigne(&PWMDroite);
 	ordreDroite = (uint8_t) abs(PWMDroite);
 	sensDroite 	= (uint8_t) (PWMDroite < 0 ? 2 : (PWMDroite > 0 ? 1 : 0));
 	apply();

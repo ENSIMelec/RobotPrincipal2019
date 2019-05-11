@@ -91,7 +91,7 @@ void ClientUDP::addPoints(int pts, int proba){
 
     /*int pointsSeuil = calculPoints(points);*/      //Fonction commentée et rendue inutile
     sendMessage("P "+to_string(points));
-    cout << "Points :" << pointsSeuil << endl;
+    cout << "Points :" << points << endl;
 }
 
 

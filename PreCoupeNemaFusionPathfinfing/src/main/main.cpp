@@ -266,8 +266,8 @@ int main(int argc, char **argv) {
 	//thread (couleurThreadFunc, ref(strat), ref(client)).detach();//créer un nouveau Thread qui attend la reception des couleurs et qui met à jour un statut strategie
 
 	//Lancement des threads pour l'électron et l'expérience
-	thread(electronThreadFunc, ref(electronLance).detach();
-	thread(experienceThreadFunc, ref(experienceLancee)).detach();
+	thread (electronThreadFunc, ref(electronLance)).detach();
+	thread (experienceThreadFunc, ref(experienceLancee)).detach();
 	
 	
 	

@@ -39,9 +39,9 @@ void setup() {
   analogWrite(enA_Gauche, PWM_Gauche);
   analogWrite(enB_Droite, PWM_Droite);
   //INSA RENNES 
-  //TCCR0B = (TCCR0B & 0b11111000) | 1;
-  //TCCR1B = (TCCR1B & 0b11111000) | 1;
-  //TCCR2B = (TCCR2B & 0b11111000) | 1;
+  TCCR0B = (TCCR0B & 0b11111000) | 1;
+  TCCR1B = (TCCR1B & 0b11111000) | 1;
+  TCCR2B = (TCCR2B & 0b11111000) | 1;
   
   //erial.println("STARTING");
 }

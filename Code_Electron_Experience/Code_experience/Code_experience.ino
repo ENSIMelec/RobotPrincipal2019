@@ -6,7 +6,7 @@
 int status = WL_IDLE_STATUS;
 const char* ssid = "MilhabotGaming";  //  your network SSID (name)
 
-const char* pass = "Milharausecours!2018";       // your network password
+const char* pass = "****";       // your network password
 
 unsigned int localPort = 5757;      // local port to listen for UDP packets
 

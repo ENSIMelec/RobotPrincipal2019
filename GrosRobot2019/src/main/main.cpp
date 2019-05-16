@@ -28,11 +28,11 @@ using namespace std;
 #define EXIT_FAIL_I2C -2
 #define EXIT_FORCING_STOP -99
 
+#define IP_ELECT "172.30.1.20"
+#define IP_EXP "172.30.1.30"
 #define PIN_JACK 17
 #define PIN_ARU 5
 #define PIN_LED 16
-#define IP_ELECT "172.30.1.135"
-#define IP_EXP "172.30.1.30"
 
 /***************************** Variables globales ******************************/
 unsigned int temps_match;
@@ -48,7 +48,6 @@ string PATH = "/home/pi/GrosRobot2019/";
 bool argc_control(int argc);
 bool argv_contains_dummy(int argc, char** argv);
 
-void couleurThreadFunc(Strategie& strat, ClientUDP& client);
 void actionThreadFunc(ActionManager& ACTION, string filename, bool& actionEnCours, bool& actionDone);
 
 void jouerMatch(Asservissement2018& asserv, Strategie& strat, MoteurManager *p_moteurs, ActionManager& actions, timer& temps,  ClientUDP& client);
@@ -69,7 +68,6 @@ void lidar(Lidar *lidar){
 		cout<<"thread Lidar"<<endl;
 		relancer = true;
 }
-
 void electronThreadFunc(bool &confirm){
 	int sockfd = socket(AF_INET,SOCK_DGRAM,IPPROTO_UDP);
 	struct sockaddr_in electron;
@@ -128,7 +126,7 @@ void electronThreadFunc(bool &confirm){
 		cout << "Message recu : " << paquetRecu << endl;
 	}
 
-	while(strcmp(paquetRecu, "OK") != 0){
+	while(strcmp(paquetRecu, "Ok") != 0){
 		sendto(sockfd, str_deb.c_str(), str_deb.size()+1, 0,(struct sockaddr *)&electron, addr);
 		recvfrom(sockfd, paquetRecu, 25, 0, (struct sockaddr *)&electron, &addr);
 	}
@@ -140,7 +138,7 @@ void experienceThreadFunc(bool &confirm){
 	struct sockaddr_in experience;
 	experience.sin_family = AF_INET;
     experience.sin_port = htons(5757);
-    experience.sin_addr.s_addr = inet_addr(IP_EXP);
+    experience.sin_addr.s_addr = inet_addr("172.30.1.92");
     char * paquetRecu;
     string str = "On";
     string connexion = "Connexion";
@@ -191,7 +189,7 @@ void experienceThreadFunc(bool &confirm){
 		cout << "Message recu : " << paquetRecu << endl;
 	}
 
-	while(strcmp(paquetRecu, "OK") != 0){
+	while(strcmp(paquetRecu, "Ok") != 0){
 		sendto(sockfd, str.c_str(), str.size()+1, 0,(struct sockaddr *)&experience, sizeof(experience));
 		recvfrom(sockfd, paquetRecu, 25, 0, (struct sockaddr *)&experience, &addr);
 	}
@@ -239,15 +237,12 @@ int main(int argc, char **argv) {
 	argv_contains_dummy(argc, argv); //En fonction des paramètres du main, on active les dummy motors ou non
 
 
-
 	// Création du groupement de deux codeurs
 	SerialCodeurManager codeurs(0);
 	//reset du lancement précédent
 	codeurs.Closes();
 	codeurs.Initialisation();
 	delay(100);
-
-
 
 	char nomFile[100];
 	sprintf(nomFile, "%sfilepoint3.1/%s/", PATH.c_str(), argv[1]); //Dossier contenant le fichier main.strat et les fichier .point
@@ -283,33 +278,15 @@ int main(int argc, char **argv) {
 	thread lidarThread1(lidar,lid);
 	cout<<"thread1 init"<<endl;
 
-	sleepMillis(3000);
+	sleepMillis(1000);
 	thread lidarThread2;
 
 	bool electronLance = false;
 	bool experienceLancee = false;
 
-
 	//Lancement des threads pour l'électron et l'expérience
 	thread (electronThreadFunc, ref(electronLance)).detach();
 	thread (experienceThreadFunc, ref(experienceLancee)).detach();
-
-	sleepMillis(5000);
-	if(experienceLancee){
-		cout << "Experience connectée" << endl;
-	}
-	else{
-		cout << "Echec de connexion" << endl;
-	}
-
-	sleepMillis(5000);
-	if(experienceLancee){
-		cout << "Experience connectée" << endl;
-	}
-	else{
-		cout << "Echec de connexion" << endl;
-	}
-
 
 	cout << "Attente du jack" << endl;
 	while(digitalRead(PIN_JACK) == 1) {
@@ -327,8 +304,6 @@ int main(int argc, char **argv) {
 	}
 	digitalWrite(PIN_LED, 1);
 
-
-
 	temps.restart();
 
 	cout << "Fin d'attente" << endl;
@@ -339,11 +314,8 @@ int main(int argc, char **argv) {
 	cout <<"Codeur reset"<<endl;
 	nbAppelsAsserv = 0;
 
-	cout << "Lancement du thread de recepetion des couleurs" << endl;
-	//thread (couleurThreadFunc, ref(strat), ref(client)).detach();//créer un nouveau Thread qui attend la reception des couleurs et qui met à jour un statut strategie
-	
-	
-	
+		
+	/* Commenté par Sandra, plus besoin sur le nouveau robot ?
 	if(!relancer){
 		goto statement;
 	}
@@ -353,9 +325,7 @@ int main(int argc, char **argv) {
 	cout<<"thread2 init"<<endl;
 	sleepMillis(1000);
 	
-statement:
-	
-	
+statement:*/
 	
 	jouerMatch(ref(asserv), ref(strat), p_moteurs, ref(actions), ref(temps), ref(client));
 
@@ -404,7 +374,6 @@ void actionThreadFunc(ActionManager& ACTION, string filename, bool& actionEnCour
 }
 
 
-
 void jouerMatch(Asservissement2018& asserv, Strategie& strat, MoteurManager *p_moteurs, ActionManager& actions, timer& temps, ClientUDP& client) {
 	BlocageManager blocage(lid); //Gestionnaire de blocage
 	timer tempsBlocage, asservTimer, timeOut;
@@ -426,10 +395,14 @@ void jouerMatch(Asservissement2018& asserv, Strategie& strat, MoteurManager *p_m
 				cout << "WeAreBlocked" <<endl;
 
 				//Blocage des noeuds autour de celui qu'on détecte
-				int XNodeToBlock, YNodeToblock;
-				lid->cartesianFromLidar(&XNodeToBlock, &YNodeToblock);
-				cout << "Point bloque : " << XNodeToBlock << " ; " << YNodeToblock << endl;
+				int XNodeToBlock, YNodeToBlock;
+				lid->cartesianFromLidar(&XNodeToBlock, &YNodeToBlock);
+				
+
+				cout << "Point bloque : " << XNodeToBlock << " ; " << YNodeToBlock << endl;
 				Point robotBloqueIci = asserv.getCoordonnees();
+
+				/*
 				if(robotBloqueIci.getX() >= 0 && strat.getPointActuel().getSens() == 0){
 					XNodeToBlock = robotBloqueIci.getX() - XNodeToBlock;
 					YNodeToblock = robotBloqueIci.getY() - YNodeToblock;
@@ -438,29 +411,35 @@ void jouerMatch(Asservissement2018& asserv, Strategie& strat, MoteurManager *p_m
 					XNodeToBlock = robotBloqueIci.getX() + XNodeToBlock;
 					YNodeToblock = robotBloqueIci.getY() + YNodeToblock;
 				}
+				*/
+
+				asserv.PositionAbs(XNodeToBlock, YNodeToBlock, &XNodeToBlock, &YNodeToBlock);
 				
-				cout << "Point bloque : " << XNodeToBlock << " ; " << YNodeToblock << endl;
+				cout << "Point bloque : " << XNodeToBlock << " ; " << YNodeToBlock << endl;
 
-				Noeud nodeToBlock(false, new Coordonnee(XNodeToBlock, YNodeToblock), strat.getMaTable()->getMap().getMapping().size());
-				strat.blockNodes(&nodeToBlock);
+				if(Point::isOnTable(XNodeToBlock, YNodeToBlock)){
+					Noeud nodeToBlock(false, new Coordonnee(XNodeToBlock, YNodeToBlock), strat.getMaTable()->getMap().getMapping().size());
+					strat.blockNodes(&nodeToBlock);
 
-				//On se prépare à reculer vers le noeud le plus proche de l'endroit de la table où on se trouve
+					//On se prépare à reculer vers le noeud le plus proche de l'endroit de la table où on se trouve
 
-				strat.setObjectifAatteindre(strat.getPointActuel());
-				Noeud* currentNode = strat.createNodeByPoint(asserv.getCoordonnees());
-				cout <<"currentNode cree" <<endl;
-				Noeud* noeudPlusProche = strat.getMaTable()->graph.noeudLePlusProche(currentNode);
-				cout <<"noeudPlusProche cree : " << noeudPlusProche->getId() <<endl;
-				Point pointRecul = strat.convertNodeIntoPoint(noeudPlusProche);
-				cout <<"pointRecul cree" <<endl;
+					strat.setObjectifAatteindre(strat.getPointActuel());
+					Noeud* currentNode = strat.createNodeByPoint(asserv.getCoordonnees());
+					cout <<"currentNode cree" <<endl;
+					Noeud* noeudPlusProche = strat.getMaTable()->graph.noeudLePlusProche(currentNode);
+					cout <<"noeudPlusProche cree : " << noeudPlusProche->getId() <<endl;
+					Point pointRecul = strat.convertNodeIntoPoint(noeudPlusProche);
+					cout <<"pointRecul cree" <<endl;
 
-				pointRecul.setSens(1);
-				pointRecul.setVitesse(400);
-				asserv.pointSuivant(pointRecul);
+					pointRecul.setSens(1);
+					pointRecul.setVitesse(400);
+					asserv.pointSuivant(pointRecul);
 
-				// Préparation pour le pathfinding
-				strat.setPathfindingInAction(true);
-				strat.setDepartPathfinding(pointRecul);
+					// Préparation pour le pathfinding
+					strat.setPathfindingInAction(true);
+					strat.setDepartPathfinding(pointRecul);
+				}
+				
 			}else{
 				asserv.pointSuivant(strat.getPointSuivant()); // On demande le point suivant à la strategie (elle met à jour le point actuel/courant), et on le donne à l'asservissement
 			}
@@ -553,6 +532,7 @@ void jouerMatch(Asservissement2018& asserv, Strategie& strat, MoteurManager *p_m
 	return;
 }
 
+/* Commenté par Sandra : inutile
 bool recontreObstacle(Strategie& strat, PositionBlocage posBloc) {
 	int sensDeplacement = strat.getSensDeplacement();
 	int optionDetection = strat.getOptionDetection();
@@ -566,6 +546,7 @@ bool recontreObstacle(Strategie& strat, PositionBlocage posBloc) {
 		return false;
 	}
 }
+*/
 
 bool ARUisNotPush() {
 	return digitalRead(PIN_ARU) == 1;

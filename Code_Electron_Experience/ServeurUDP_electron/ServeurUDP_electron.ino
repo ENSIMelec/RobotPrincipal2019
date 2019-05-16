@@ -13,7 +13,7 @@ unsigned int localPort = 5757;      // local port to listen for UDP packets
 
 char packetBuffer[512]; //buffer to hold incoming and outgoing packets
 
-char replyPacket[]; //buffer to answer the state of the request
+char* replyPacket; //buffer to answer the state of the request
 
 // A UDP instance to let us send and receive packets over UDP
 WiFiUDP Udp;
@@ -87,7 +87,7 @@ void loop() {
     //Start electron
     if(!message.compareTo("On")) {
       Serial.println("Electron is ON");
-      replyPacket = "OK"; 
+      replyPacket = "Ok"; 
       Serial.write(relON, sizeof(relON));   //serial frame which turn on the relay
     }
     //Stop experience
@@ -98,11 +98,16 @@ void loop() {
     }
     else Serial.println("Error: not a matching command...");
 
+    Serial.flush();
+
     // send back a reply, to the IP address and port we got the packet from
     Serial.println("Contents:");
     Serial.println(packetBuffer);
     Udp.beginPacket(Udp.remoteIP(), Udp.remotePort());
     Udp.write(replyPacket);
-    Udp.endPacket();    
+    Udp.endPacket(); 
+
+    memset(packetBuffer, 0, sizeof(packetBuffer));
+    memset(replyPacket, 0, sizeof(replyPacket));
 }
 }

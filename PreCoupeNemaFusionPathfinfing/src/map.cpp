@@ -112,7 +112,7 @@ void Map::BloquerNoeud(int id)
 //Débloque un noeud
 void Map::DebloquerNoeud(int id)
 {
-    mapping[id]->etat = true;
+    mapping[id].etat = true;
 }
 
 int Map::getX(int n)

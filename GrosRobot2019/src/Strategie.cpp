@@ -187,7 +187,6 @@ Point Strategie::getPointSuivant() {
                 pushInteruption(); //ajout du point interrompu
                 do {
                     indexObjectif++;
-                    cout << " index objectif : " << indexObjectif << endl;
                 }while(indexObjectif < nbObjectifs && objectifsDone[indexObjectif]);
                 //Tant qu'on trouve pas d'objectif marque "non fait", et qu'on arrive pas a la fin de la liste des objectifs, on continue
                 if(indexObjectif < nbObjectifs) { //Si il y a un objectif suivant trouve
@@ -246,8 +245,7 @@ Point Strategie::getPointSuivant() {
     else {//Si on a fini un objectif
         cout << "[Objectif suivant]" << endl;
         // Débloque tous les noeuds pour changer d'objectif
-        maTable->graph.debloquerTousLesNoeuds();
-        cout << "Noeuds debloques" << endl;
+        maTable->getMap().debloquerTousLesNoeuds();
         objectifsDone[indexObjectif] = true; //Marque l'objectif "fait"
         if(pileInterruption.empty() == false) { //Si on a une pile d'interruption, on remonte
             popInteruption();

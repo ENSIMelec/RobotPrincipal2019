@@ -34,9 +34,10 @@ StepperManager::StepperManager()
         if(init)
         {
             Energize();
+            setStepMode(2);
+
             setSpeed(50);
-            setPosition(10);
-            printf("wait");
+            goAway();
             goHome();
         }
     }
@@ -58,9 +59,47 @@ int StepperManager::setPosition(int pos)
 
         return -3;
     }
-
+    while(!homed);
     pos *= Multiplier;
-    printf("setPosition %d \n",pos);
+    uint8_t command[] = {
+        0xE0,
+        (uint8_t)(pos >> 0 & 0xFF),
+        (uint8_t)(pos >> 8 & 0xFF),
+        (uint8_t)(pos >> 16 & 0xFF),
+        (uint8_t)(pos >> 24 & 0xFF),
+    };
+    struct i2c_msg message = { address, 0, sizeof(command), command };
+    struct i2c_rdwr_ioctl_data ioctl_data = { &message, 1 };
+    int result = ioctl(i2c_stepper, I2C_RDWR, &ioctl_data);
+    printf("set Position : %d\n",pos);
+
+
+    int targetPosRead = -1;
+    do
+    {
+
+        getTargetPosition(&targetPosRead);
+        if(targetPosRead == 0)
+        {
+            result = ioctl(i2c_stepper, I2C_RDWR, &ioctl_data);
+
+        }
+    }while(targetPosRead != pos );
+
+
+    return 0;
+
+}
+
+int StepperManager::goAway()
+{
+
+    if(!init)
+    {
+
+        return -3;
+    }
+    int pos = 10*Multiplier;
     uint8_t command[] = {
         0xE0,
         (uint8_t)(pos >> 0 & 0xFF),
@@ -90,8 +129,6 @@ int StepperManager::setPosition(int pos)
 
 }
 
-
-
 int StepperManager::setSpeed(int speed)
 {
     speed = speed*Multiplier*10000;
@@ -102,7 +139,7 @@ int StepperManager::setSpeed(int speed)
         (uint8_t)(speed >> 16 & 0xFF),
         (uint8_t)(speed >> 24 & 0xFF),
     };
-    printf("setspeed");
+    printf("setspeed %d\n",speed);
 
     struct i2c_msg message = { address, 0, sizeof(command), command };
     struct i2c_rdwr_ioctl_data ioctl_data = { &message, 1 };
@@ -199,7 +236,7 @@ int StepperManager::goHome()
     {
         return -3;
     }
-    setHomingSpeed(40000000);
+    setHomingSpeed(5000000);
     setStepMode(0);
     uint8_t command[] = { 0x97,
                           0x00
@@ -207,7 +244,7 @@ int StepperManager::goHome()
     struct i2c_msg message = { address, 0, sizeof(command), command };
     struct i2c_rdwr_ioctl_data ioctl_data = { &message, 1 };
     int result = ioctl(i2c_stepper, I2C_RDWR, &ioctl_data);
-    uint8_t buffer;
+    uint8_t buffer = -1;
     if (result != 1)
     {
         perror("failed to go Home");
@@ -217,7 +254,6 @@ int StepperManager::goHome()
     while (homing) {
 
         getHomingFlag(&buffer);
-        printf(" homing %d \n",buffer);
         if(!buffer)
         {
             homing = false;
@@ -229,7 +265,7 @@ int StepperManager::goHome()
         }
     }
     homed = true;
-    setStepMode(1);
+    setStepMode(2);
     printf("multiplier : %d \n",Multiplier);
 }
 
@@ -271,7 +307,7 @@ int StepperManager::getCurrentPosition(int *output)
     if (result) { return -1; }
     *output = buffer[0] + ((uint32_t)buffer[1] << 8) +
             ((uint32_t)buffer[2] << 16) + ((uint32_t)buffer[3] << 24);
-    *output = *output/Multiplier;
+    *output = *output;
 
     return 0;
 }
@@ -299,7 +335,7 @@ int StepperManager::getHomingFlag(uint8_t *output)
         perror("failed to get homing flag not init");
         return -2;
     }
-    *output = 0x00;
+    *output = 0xFF;
     int result = getVariable(0x01, output, sizeof(output));
     *output = *output & 0x10;
     if (result) { return -1; }
@@ -351,14 +387,8 @@ int StepperManager::Energize()
 
 int StepperManager::closeStep()
 {
-    printf("debClose\n");
-    homed = false;
-    goHome();
-    printf("Close\n");
 
     deEnergize();
-    printf("finClose\n");
-
     int result = close(i2c_stepper);
     return result;
 }

@@ -57,6 +57,16 @@ class Point
 
 	void display();
 
+	static bool isOnTable(int xPoint, int yPoint){
+		if(xPoint > 1400 || xPoint < -1400){
+			return false;
+		}
+		if(yPoint > 1535 || yPoint < 100){
+			return false;
+		}
+		return true;
+	}
+
 	private :
 	TypePoint m_type;
 	std::string m_type_S;

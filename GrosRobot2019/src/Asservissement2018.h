@@ -66,6 +66,8 @@ public:
 
     void setVitessePointActuel(int);
 
+    void PositionAbs(int, int, int*, int*);
+
 private:
 
     void odometrie();

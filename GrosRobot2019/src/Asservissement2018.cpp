@@ -80,6 +80,7 @@ void Asservissement2018::pointSuivant(Point point){
 		somme_erreurG=0;
 		somme_erreurD=0;
 		somme_erreurPosition=0;
+		somme_erreurCorrection = 0;
 
 		old_erreurPosition = 0;
 		old_erreurG = 0;
@@ -513,12 +514,12 @@ void Asservissement2018::asservVitesse(double vitConsigneG, double vitConsigneD)
 
 	if(pointActuel.getDerapage()== true){//détection de dérapage
 		cout <<"Wait Burn, Gauche : "<< abs(cmdG) <<" vitG: "<<abs(vitG)<<" ,Droite: "<< abs(cmdD)<<" vitD: "<<abs(vitD)<<endl;
-		if(abs(cmdG)>=100 && abs(vitG)<5){
+		if(abs(cmdG)>=150 && abs(vitG)<5){
 			cmdG=0;
 			cout<<"Dérapage Gauche"<<endl;
 		}
 
-		if(abs(cmdD)>=100 && abs(vitD)<5){
+		if(abs(cmdD)>=150 && abs(vitD)<5){
 			cmdD=0;
 			cout<<"Dérapage Droite"<<endl;
 		}

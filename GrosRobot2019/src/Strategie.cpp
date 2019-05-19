@@ -4,11 +4,15 @@ using namespace std;
 const double max_weight = numeric_limits<double>::infinity();
 
 //Constructeur
-Strategie::Strategie(string path){
+Strategie::Strategie(string path, string cote_table){
     cout << "--- Constructeur ---" << endl;
-
-    int cote_table;
-    maTable = new Graphe(1);
+    
+    //Récupération du coté de la table
+    int cote = 1;     //Coté violet par défaut
+    if(cote_table.compare("Jaune") == 0) {
+        cote = -1;    //Coté jaune
+    }
+    maTable = new Graphe(cote);     //en fonction du coté, le graphe pour le pathfinding est sysmétrisé
     pathfindingInAction = false;
     indexItineraire = 0;
 

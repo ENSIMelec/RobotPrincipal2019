@@ -37,6 +37,7 @@ StepperManager::StepperManager()
             setStepMode(2);
 
             setSpeed(50);
+            printf("Multiplier constructeur : %d \n",Multiplier);
             goAway();
             goHome();
         }
@@ -60,6 +61,7 @@ int StepperManager::setPosition(int pos)
         return -3;
     }
     while(!homed);
+    exitSafeStart();
     pos *= Multiplier;
     uint8_t command[] = {
         0xE0,
@@ -390,6 +392,6 @@ int StepperManager::closeStep()
 
     deEnergize();
     int result = close(i2c_stepper);
-    return result;
+       return result;
 }
 

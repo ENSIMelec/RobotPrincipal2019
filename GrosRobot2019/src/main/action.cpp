@@ -27,7 +27,7 @@ using namespace std;
 /***************************** Variables globales ******************************/
 
 bool forcing_stop;
-string PATH = "/home/pi/GrosRobot2019/";
+string PATH = "/home/pi/GrosRobot2019_Damien/";
 
 /********************************* prototypes **********************************/
 

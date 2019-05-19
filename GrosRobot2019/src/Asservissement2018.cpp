@@ -80,6 +80,13 @@ void Asservissement2018::pointSuivant(Point point){
 		somme_erreurG=0;
 		somme_erreurD=0;
 		somme_erreurPosition=0;
+
+		old_erreurPosition = 0;
+		old_erreurG = 0;
+		old_erreurD = 0;
+		old_erreurAngle = 0;
+		old_erreurCorrection = 0;
+
 	}else{//Pente désactivé pour les transitions smooth
 		coefAccel=1;
 	}

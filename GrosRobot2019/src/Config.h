@@ -55,8 +55,11 @@ public:
 	int get_I2C_SERVOS() const;
 	int get_I2C_LANCEUR() const;
 	int get_I2C_MOTEURS() const;
+	int get_I2C_STEPPER() const;
 
 	int get_temps_match() const;
+
+	bool get_WAIT_DEVICES_CONNECTIONS() const;
 
 private:
 	// Attributs
@@ -73,9 +76,11 @@ private:
 
 	double CoeffGLong, CoeffDLong, CoeffAngl;
 
-	int I2C_SERVOS, I2C_LANCEUR, I2C_MOTEURS;
+	int I2C_SERVOS, I2C_LANCEUR, I2C_MOTEURS,I2C_STEPPER;
 
 	int temps_match;
+
+	bool WAIT_DEVICES_CONNECTIONS;
 };
 
 #endif //CONFIG_H_INCLUDED

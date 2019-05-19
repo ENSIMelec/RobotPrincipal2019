@@ -49,8 +49,11 @@ void Config::loadFromFile(string filename)
 	I2C_SERVOS = tree.get<int>("asservissement.I2C_SERVOS");
 	I2C_LANCEUR = tree.get<int>("asservissement.I2C_LANCEUR");
 	I2C_MOTEURS = tree.get<int>("asservissement.I2C_MOTEURS");
+	I2C_STEPPER = tree.get<int>("asservissement.I2C_STEPPER");
 
 	temps_match = tree.get<int>("asservissement.temps_match");
+
+	WAIT_DEVICES_CONNECTIONS = tree.get<bool>("asservissement.WAIT_DEVICES_CONNECTIONS");
 
 	ipServeur = tree.get<string>("asservissement.ipServeur");
 	port = tree.get<int>("asservissement.port");
@@ -92,12 +95,14 @@ double Config::getCoeffGLong() const { return CoeffGLong; }
 double Config::getCoeffDLong() const { return CoeffDLong; }
 double Config::getCoeffAngl() const { return CoeffAngl; }
 
-int Config::get_I2C_SERVOS() const {return I2C_SERVOS; }
-int Config::get_I2C_LANCEUR() const {return I2C_LANCEUR; }
-int Config::get_I2C_MOTEURS() const {return I2C_MOTEURS; }
-
+int Config::get_I2C_SERVOS() const { return I2C_SERVOS; }
+int Config::get_I2C_LANCEUR() const { return I2C_LANCEUR; }
+int Config::get_I2C_MOTEURS() const { return I2C_MOTEURS; }
+int Config::get_I2C_STEPPER() const { return I2C_STEPPER; }
 
 int Config::get_temps_match() const { return temps_match; }
+
+bool Config::get_WAIT_DEVICES_CONNECTIONS() const { return WAIT_DEVICES_CONNECTIONS; }
 
 void Config::afficherConfig() const {
 	cout << endl << "--- CONFIGURATION ---" << endl;

@@ -20,6 +20,7 @@ using namespace std;
 #include "ActionManager.h"
 #include "Strategie.h"
 #include "lidar.h"
+#include "InitRobot.h"
 
 /*********************************** Define ************************************/
 
@@ -30,9 +31,6 @@ using namespace std;
 
 #define IP_ELECT "172.30.1.20"
 #define IP_EXP "172.30.1.30"
-#define PIN_JACK 17
-#define PIN_ARU 5
-#define PIN_LED 16
 
 /***************************** Variables globales ******************************/
 unsigned int temps_match;
@@ -41,19 +39,19 @@ unsigned int nbAppelsAsserv;
 bool forcing_stop;
 unsigned int nbActionFileExecuted;
 
-string PATH = "/home/pi/GrosRobot2019/";
+string PATH = "/home/pi/GrosRobot2019_Damien/";
 
 /********************************* prototypes **********************************/
 
 bool argc_control(int argc);
 bool argv_contains_dummy(int argc, char** argv);
 
+void communicationAvecKiroulpaThread(bool& robotConnecte, ClientUDP& client);
 void actionThreadFunc(ActionManager& ACTION, string filename, bool& actionEnCours, bool& actionDone);
 
 void jouerMatch(Asservissement2018& asserv, Strategie& strat, MoteurManager *p_moteurs, ActionManager& actions, timer& temps,  ClientUDP& client);
 
 bool recontreObstacle(Strategie& strat, PositionBlocage posBloc);
-bool ARUisNotPush();
 
 void stopSignal(int signal);
 void sleepMillis(int millis);
@@ -68,6 +66,7 @@ void lidar(Lidar *lidar){
 		cout<<"thread Lidar"<<endl;
 		relancer = true;
 }
+
 void electronThreadFunc(bool &confirm){
 	int sockfd = socket(AF_INET,SOCK_DGRAM,IPPROTO_UDP);
 	struct sockaddr_in electron;
@@ -104,7 +103,7 @@ void electronThreadFunc(bool &confirm){
 	confirm = true;
 
 
-	while(digitalRead(PIN_JACK) == 1) {
+	while(InitRobot::jackIsPresent()) {
 		sleepMillis(1);
 	}
 
@@ -126,19 +125,19 @@ void electronThreadFunc(bool &confirm){
 		cout << "Message recu : " << paquetRecu << endl;
 	}
 
-	while(strcmp(paquetRecu, "Ok") != 0){
+	while(strcmp(paquetRecu, "OK") != 0){
 		sendto(sockfd, str_deb.c_str(), str_deb.size()+1, 0,(struct sockaddr *)&electron, addr);
 		recvfrom(sockfd, paquetRecu, 25, 0, (struct sockaddr *)&electron, &addr);
 	}
 }
 
-void experienceThreadFunc(bool &confirm){
+void experienceThreadFunc(bool &confirm) {
 	/*Déclaration de variables pour recevoir les datagrammes*/
 	int sockfd = socket(AF_INET,SOCK_DGRAM,IPPROTO_UDP);
 	struct sockaddr_in experience;
 	experience.sin_family = AF_INET;
     experience.sin_port = htons(5757);
-    experience.sin_addr.s_addr = inet_addr("172.30.1.92");
+    experience.sin_addr.s_addr = inet_addr(IP_EXP);
     char * paquetRecu;
     string str = "On";
     string connexion = "Connexion";
@@ -168,7 +167,7 @@ void experienceThreadFunc(bool &confirm){
 	confirm = true;
 	paquetRecu = "";
 
-	while(digitalRead(PIN_JACK) == 1) {
+	while(InitRobot::jackIsPresent()) {
 		sleepMillis(1);
 	}
 
@@ -189,10 +188,55 @@ void experienceThreadFunc(bool &confirm){
 		cout << "Message recu : " << paquetRecu << endl;
 	}
 
-	while(strcmp(paquetRecu, "Ok") != 0){
+	while(strcmp(paquetRecu, "OK") != 0){
 		sendto(sockfd, str.c_str(), str.size()+1, 0,(struct sockaddr *)&experience, sizeof(experience));
 		recvfrom(sockfd, paquetRecu, 25, 0, (struct sockaddr *)&experience, &addr);
 	}
+}
+
+void communicationAvecKiroulpaThread(bool& robotConnecte, ClientUDP& client) {
+	const int MAXBUFFERCOULEURS = 1024;
+	const int POORTCOMMKIROULPA = 3333;
+
+    int sock = socket(PF_INET, SOCK_DGRAM,IPPROTO_UDP);
+
+    struct sockaddr_in ipCommunication;
+    ipCommunication.sin_family = AF_INET;
+    ipCommunication.sin_addr.s_addr = inet_addr("0.0.0.0");
+    ipCommunication.sin_port = htons(POORTCOMMKIROULPA);
+
+    socklen_t t = sizeof((struct sockaddr *)&ipCommunication);
+
+    bool confirmeBalance = false;
+    bool confirmeAccelerateur = false;
+
+    int bd = bind(sock,(struct sockaddr *)&ipCommunication,sizeof(ipCommunication));
+    if (bd == -1)
+        perror("bind");
+
+    char buff[MAXBUFFERCOULEURS];
+    ssize_t recu;
+
+    while(!robotConnecte && !confirmeBalance && !confirmeAccelerateur){
+    	recu = recvfrom (sock, buff, MAXBUFFERCOULEURS, 0, (struct sockaddr *)&ipCommunication, &t);
+	    if(recu == -1)
+	        perror("erreur recvfrom\n");
+	    else{
+	        cout << "Recu : '" << buff << "'" << endl;
+			if(buff[0] == 'B'){
+				confirmeBalance = true;
+				client.addPoints(24, 100);
+			}
+			else if(buff[0] == 'A'){
+				confirmeAccelerateur = true;
+				client.addPoints(30, 100);
+			}
+			else if(buff[0] == 'O'){
+				robotConnecte = true;
+			}
+    	}
+    }
+    
 }
 
 ///////////////////////////// PROGRAMME PRINCIPAL ///////////////////////////////
@@ -213,7 +257,7 @@ int main(int argc, char **argv) {
 /***************** Déclaration et initialisation des variables *****************/
 
 	// Initialise les GPIO de la Rasp (pour la pin ACK + blocage)
-	// ATTENTION: à appeler absolument avant d’initialiser les managers
+	// ATTENTION: à appeler absolument avant d’initialiser les managers et InitRobot
 	wiringPiSetupGpio();
 
 	Config config;
@@ -221,7 +265,7 @@ int main(int argc, char **argv) {
 
 	int i2cM = wiringPiI2CSetup(config.get_I2C_MOTEURS());
 	int i2cS = wiringPiI2CSetup(config.get_I2C_SERVOS());
-	int i2cSt = wiringPiI2CSetup(9);//Adresse i2c du nema, devrait passer dans le fichier conf si jamais
+	int i2cSt = wiringPiI2CSetup(config.get_I2C_STEPPER());//Adresse i2c du nema, devrait passer dans le fichier conf si jamais
 
 	if(i2cM < 0 || i2cS < 0 || i2cSt < 0)
 		return EXIT_FAIL_I2C;
@@ -237,6 +281,7 @@ int main(int argc, char **argv) {
 	argv_contains_dummy(argc, argv); //En fonction des paramètres du main, on active les dummy motors ou non
 
 
+
 	// Création du groupement de deux codeurs
 	SerialCodeurManager codeurs(0);
 	//reset du lancement précédent
@@ -244,15 +289,21 @@ int main(int argc, char **argv) {
 	codeurs.Initialisation();
 	delay(100);
 
+
+
 	char nomFile[100];
 	sprintf(nomFile, "%sfilepoint3.1/%s/", PATH.c_str(), argv[1]); //Dossier contenant le fichier main.strat et les fichier .point
-	Strategie strat(nomFile);
+	Strategie strat(nomFile, argv[1]);
 
 	//Setup Connexion udp to Serveur
 	string ipServeur = config.getIpServeur();
 	int portServeur = config.getPort();
 	ClientUDP client(ipServeur, portServeur);
 
+	//Les actionneurs doivent être alimenté pour être initialiser, donc ARU relaché
+	cout << "Attente de l'arret d'urgence" << endl;
+	while(InitRobot::aruIsNotPush() == false);
+	cout << "Fin d'attente" << endl;
 	ActionManager actions(i2cS, i2cSt, config.getNbAX12(), client);
 
     temps_match = config.get_temps_match();
@@ -261,10 +312,6 @@ int main(int argc, char **argv) {
 
     Asservissement2018 asserv(moteurs, codeurs, config, temps, client);
 	asserv.initialiser(strat.getPointActuel());
-
-    pinMode(PIN_JACK, INPUT);
-    pinMode(PIN_ARU, INPUT);
-    pinMode(PIN_LED, OUTPUT);
 
 /***************************** Départ du robot *********************************/
 
@@ -278,44 +325,48 @@ int main(int argc, char **argv) {
 	thread lidarThread1(lidar,lid);
 	cout<<"thread1 init"<<endl;
 
-	sleepMillis(1000);
+	sleepMillis(3000);
 	thread lidarThread2;
 
 	bool electronLance = false;
 	bool experienceLancee = false;
+	bool robotConnecte = false;
+	InitRobot init_robot(&electronLance, &experienceLancee, &robotConnecte);
 
-	//Lancement des threads pour l'électron et l'expérience
-	thread (electronThreadFunc, ref(electronLance)).detach();
-	thread (experienceThreadFunc, ref(experienceLancee)).detach();
+	bool waitForDevicesConnections = 0;
+	waitForDevicesConnections = config.get_WAIT_DEVICES_CONNECTIONS();
+	if(waitForDevicesConnections) {
+		//Lancement des threads pour l'électron et l'expérience et le deuxième robot
+		thread (electronThreadFunc, ref(electronLance)).detach();
+		thread (experienceThreadFunc, ref(experienceLancee)).detach();
+		thread (communicationAvecKiroulpaThread, ref(robotConnecte), ref(client)).detach();
 
-	cout << "Attente du jack" << endl;
-	while(digitalRead(PIN_JACK) == 1) {
-		if(ARUisNotPush()) {//Led Allumée
-			digitalWrite(PIN_LED, 1);
-		} else {//Blink normal -> Il faut enlever l'ARU
-			if(temps.elapsed_ms() > 1000)
-				temps.restart();
-			else if(temps.elapsed_ms() < 500)
-				digitalWrite(PIN_LED, 0);
-			else
-				digitalWrite(PIN_LED, 1);
+		sleepMillis(1000);
+		if(experienceLancee){
+			cout << "Experience connectée" << endl;
 		}
-		sleepMillis(1);
+		else {
+			cout << "Echec de connexion" << endl;
+			sleepMillis(1000);
+			if(experienceLancee){
+				cout << "Experience connectée" << endl;
+			}
+			else{
+				cout << "Echec de connexion" << endl;
+			}
+		}
 	}
-	digitalWrite(PIN_LED, 1);
 
-	temps.restart();
-
-	cout << "Fin d'attente" << endl;
+	//Attente d'initialisation du robot: jack, aru, electron, experience
+	init_robot.waitForRobotInitialisation(waitForDevicesConnections); //true => on attend que l'electron et l'expérience soient connectés
 
 	cout << "Depart du robot" << endl;
 	codeurs.reset();
 	codeurs.reset();
 	cout <<"Codeur reset"<<endl;
 	nbAppelsAsserv = 0;
-
-		
-	/* Commenté par Sandra, plus besoin sur le nouveau robot ?
+	
+	
 	if(!relancer){
 		goto statement;
 	}
@@ -325,7 +376,9 @@ int main(int argc, char **argv) {
 	cout<<"thread2 init"<<endl;
 	sleepMillis(1000);
 	
-statement:*/
+statement:
+	
+	
 	
 	jouerMatch(ref(asserv), ref(strat), p_moteurs, ref(actions), ref(temps), ref(client));
 
@@ -334,7 +387,7 @@ statement:*/
 	if(forcing_stop) {
 		cout << "Forcing stop" << endl;
 		delete lid;		
-	} else if(!ARUisNotPush()) {
+	} else if(!InitRobot::aruIsNotPush()) {
 		cout << "ARU" << endl;
 	} else {
 		cout << "Arrivee du robot" << endl;
@@ -374,6 +427,7 @@ void actionThreadFunc(ActionManager& ACTION, string filename, bool& actionEnCour
 }
 
 
+
 void jouerMatch(Asservissement2018& asserv, Strategie& strat, MoteurManager *p_moteurs, ActionManager& actions, timer& temps, ClientUDP& client) {
 	BlocageManager blocage(lid); //Gestionnaire de blocage
 	timer tempsBlocage, asservTimer, timeOut;
@@ -382,7 +436,7 @@ void jouerMatch(Asservissement2018& asserv, Strategie& strat, MoteurManager *p_m
 	//Saute le point d'initialisation
 	nbActionFileExecuted = 0;
 
-	while(!forcing_stop && strat.isNotFinished() && temps.elapsed_s() < temps_match && ARUisNotPush()) {
+	while(!forcing_stop && strat.isNotFinished() && temps.elapsed_s() < temps_match && InitRobot::aruIsNotPush()) {
 	//Tant qu'on ne force pas l'arrêt, et que la strat n'est pas terminée, et qu'on dépasse pas le temps
 		if((!strat.haveToWaitActionDone() || actionDone) && (asserv.demandePointSuivant() || weAreBlocked || ((temps.elapsed_ms() > strat.getTimeOut()) && (strat.getTimeOut() != 0)))) {
 		//Si on a pas besoin d'attendre la fin de l'action en cours ET
@@ -395,14 +449,10 @@ void jouerMatch(Asservissement2018& asserv, Strategie& strat, MoteurManager *p_m
 				cout << "WeAreBlocked" <<endl;
 
 				//Blocage des noeuds autour de celui qu'on détecte
-				int XNodeToBlock, YNodeToBlock;
-				lid->cartesianFromLidar(&XNodeToBlock, &YNodeToBlock);
-				
-
-				cout << "Point bloque : " << XNodeToBlock << " ; " << YNodeToBlock << endl;
+				int XNodeToBlock, YNodeToblock;
+				lid->cartesianFromLidar(&XNodeToBlock, &YNodeToblock);
+				cout << "Point bloque : " << XNodeToBlock << " ; " << YNodeToblock << endl;
 				Point robotBloqueIci = asserv.getCoordonnees();
-
-				/*
 				if(robotBloqueIci.getX() >= 0 && strat.getPointActuel().getSens() == 0){
 					XNodeToBlock = robotBloqueIci.getX() - XNodeToBlock;
 					YNodeToblock = robotBloqueIci.getY() - YNodeToblock;
@@ -411,35 +461,29 @@ void jouerMatch(Asservissement2018& asserv, Strategie& strat, MoteurManager *p_m
 					XNodeToBlock = robotBloqueIci.getX() + XNodeToBlock;
 					YNodeToblock = robotBloqueIci.getY() + YNodeToblock;
 				}
-				*/
-
-				asserv.PositionAbs(XNodeToBlock, YNodeToBlock, &XNodeToBlock, &YNodeToBlock);
 				
-				cout << "Point bloque : " << XNodeToBlock << " ; " << YNodeToBlock << endl;
+				cout << "Point bloque : " << XNodeToBlock << " ; " << YNodeToblock << endl;
 
-				if(Point::isOnTable(XNodeToBlock, YNodeToBlock)){
-					Noeud nodeToBlock(false, new Coordonnee(XNodeToBlock, YNodeToBlock), strat.getMaTable()->getMap().getMapping().size());
-					strat.blockNodes(&nodeToBlock);
+				Noeud nodeToBlock(false, new Coordonnee(XNodeToBlock, YNodeToblock), strat.getMaTable()->getMap().getMapping().size());
+				strat.blockNodes(&nodeToBlock);
 
-					//On se prépare à reculer vers le noeud le plus proche de l'endroit de la table où on se trouve
+				//On se prépare à reculer vers le noeud le plus proche de l'endroit de la table où on se trouve
 
-					strat.setObjectifAatteindre(strat.getPointActuel());
-					Noeud* currentNode = strat.createNodeByPoint(asserv.getCoordonnees());
-					cout <<"currentNode cree" <<endl;
-					Noeud* noeudPlusProche = strat.getMaTable()->graph.noeudLePlusProche(currentNode);
-					cout <<"noeudPlusProche cree : " << noeudPlusProche->getId() <<endl;
-					Point pointRecul = strat.convertNodeIntoPoint(noeudPlusProche);
-					cout <<"pointRecul cree" <<endl;
+				strat.setObjectifAatteindre(strat.getPointActuel());
+				Noeud* currentNode = strat.createNodeByPoint(asserv.getCoordonnees());
+				cout <<"currentNode cree" <<endl;
+				Noeud* noeudPlusProche = strat.getMaTable()->graph.noeudLePlusProche(currentNode);
+				cout <<"noeudPlusProche cree : " << noeudPlusProche->getId() <<endl;
+				Point pointRecul = strat.convertNodeIntoPoint(noeudPlusProche);
+				cout <<"pointRecul cree" <<endl;
 
-					pointRecul.setSens(1);
-					pointRecul.setVitesse(400);
-					asserv.pointSuivant(pointRecul);
+				pointRecul.setSens(1);
+				pointRecul.setVitesse(400);
+				asserv.pointSuivant(pointRecul);
 
-					// Préparation pour le pathfinding
-					strat.setPathfindingInAction(true);
-					strat.setDepartPathfinding(pointRecul);
-				}
-				
+				// Préparation pour le pathfinding
+				strat.setPathfindingInAction(true);
+				strat.setDepartPathfinding(pointRecul);
 			}else{
 				asserv.pointSuivant(strat.getPointSuivant()); // On demande le point suivant à la strategie (elle met à jour le point actuel/courant), et on le donne à l'asservissement
 			}
@@ -502,7 +546,7 @@ void jouerMatch(Asservissement2018& asserv, Strategie& strat, MoteurManager *p_m
 		tempsBlocage.restart(); //On compte le temps passé bloqué
 
 		
-		while(lid->speed == 0 && tempsBlocage.elapsed_ms() < 1000 && ARUisNotPush() && temps.elapsed_s() < temps_match) {
+		while(lid->speed == 0 && tempsBlocage.elapsed_ms() < 1000 && InitRobot::aruIsNotPush() && temps.elapsed_s() < temps_match) {
 			//Si on rencontre un obstacle genant
 			//On attend pendant 3 secondes, tant qu'on est bloqué par un obstacle genant
 			p_moteurs->stop(); // On recule ou pas ??
@@ -511,14 +555,14 @@ void jouerMatch(Asservissement2018& asserv, Strategie& strat, MoteurManager *p_m
 		p_moteurs->dummyBlocage = false; //On débloque les moteurs
 		//Maintenant, soit le temps est dépassé (et donc il y a techniquement encore l'obstacle), soit le temps n'est pas dépassé (et donc il n'y a plus d'obstacle)
 		//posBloc = blocage.isBlocked();
-		if(lid->speed == 0 && ARUisNotPush() && temps.elapsed_s() < temps_match) { //Si il y a encore un obstacle genant
+		if(lid->speed == 0 && InitRobot::aruIsNotPush() && temps.elapsed_s() < temps_match) { //Si il y a encore un obstacle genant
 			p_moteurs->stop(); //On arrête les moteurs (au final, on a fait, si besoin, un petit déplacement en 1 seconde)
 			strat.setStatut("Bloque");
 			weAreBlocked = true; //On doit changer de point, sachant qu'on dit à la strat qu'on est bloqué -> On va changer d'objectif
 		}
 
 		//Gestion des actions
-		if(thereIsAnAction && !actionDone && !actionEnCours && strat.isNotFinished() && ARUisNotPush() && temps.elapsed_s() < temps_match) { //Si on a une action a faire et qu'elle n'est pas faite et qu'elle n'est pas en cours
+		if(thereIsAnAction && !actionDone && !actionEnCours && strat.isNotFinished() && InitRobot::aruIsNotPush() && temps.elapsed_s() < temps_match) { //Si on a une action a faire et qu'elle n'est pas faite et qu'elle n'est pas en cours
 			thread (actionThreadFunc, ref(actions), strat.getFileAction(), ref(actionEnCours), ref(actionDone)).detach();//créer un nouveau Thread qui effectue l'action
 			actionEnCours = true;
 			nbActionFileExecuted++;
@@ -532,7 +576,6 @@ void jouerMatch(Asservissement2018& asserv, Strategie& strat, MoteurManager *p_m
 	return;
 }
 
-/* Commenté par Sandra : inutile
 bool recontreObstacle(Strategie& strat, PositionBlocage posBloc) {
 	int sensDeplacement = strat.getSensDeplacement();
 	int optionDetection = strat.getOptionDetection();
@@ -545,11 +588,6 @@ bool recontreObstacle(Strategie& strat, PositionBlocage posBloc) {
 	} else { //Si on est pas gené par un obstacle
 		return false;
 	}
-}
-*/
-
-bool ARUisNotPush() {
-	return digitalRead(PIN_ARU) == 1;
 }
 
 bool argc_control(int argc) {

@@ -29,18 +29,17 @@ using namespace std;
 class Strategie
 {
 public:
-	Strategie(std::string path);
+	Strategie(string path, string cote_table);
 
-
-	std::string getNameFileStrat();
-	std::string getNameFilePoint();
-	std::string getStatut();
+	string getNameFileStrat();
+	string getNameFilePoint();
+	string getStatut();
 	unsigned int getNbObjectifs();
 
 	Point getPointActuel();
 	Point getPointSuivant();
 
-	std::string getFileAction();
+	string getFileAction();
 	int getSensDeplacement();
 	int getOptionDetection();
 	unsigned int getTimeOut();
@@ -50,8 +49,8 @@ public:
     bool isNotFinished();
 	void setVitesse(int vit);
 
-	void setStatut(std::string stat);
-	void setStatutCouleurs(std::string statCoul);
+	void setStatut(string stat);
+	void setStatutCouleurs(string statCoul);
 	void incrNbObjectifs();
 	void pushInteruption();
 	void popInteruption();
@@ -59,7 +58,7 @@ public:
 	Point eloigner(Point pt, int distanceMM);
 	bool estEloigne();
 
-	std::vector<std::vector<std::string> > objectifs;
+	vector<vector<string> > objectifs;
 
 	Noeud* getNoeudByPoint(Point point);
 	vector<Noeud*> trouverCheminVersObjectif(int pointDepart, int destination);
@@ -81,25 +80,25 @@ public:
 
 private:
 	int lireStrat();//lit la strategie, et l'enregistre dans la classe
-	int parserLigneChoix(std::string line);
+	int parserLigneChoix(string line);
 
 	unsigned int indexObjectif;
 	unsigned int indexPoint;
 	unsigned int indexLigne;
 	unsigned int indexItineraire;
 
-	std::string pathFolder;
-	std::string nameFileStrat;
-	std::string nameFilePoint;
-	std::string statut;
-	std::string statutCouleurs;
+	string pathFolder;
+	string nameFileStrat;
+	string nameFilePoint;
+	string statut;
+	string statutCouleurs;
 	unsigned int nbObjectifs;
 
-	std::vector<bool> objectifsDone; //liste des objectifs pour savoir s'ils sont realises ou pas
-	std::vector<std::string> nomObjectifs;
-	std::vector<std::vector<unsigned int> > pileInterruption; //objectif - point - ligne
+	vector<bool> objectifsDone; //liste des objectifs pour savoir s'ils sont realises ou pas
+	vector<string> nomObjectifs;
+	vector<vector<unsigned int> > pileInterruption; //objectif - point - ligne
 
-	std::vector<Point> points; //point de lecture
+	vector<Point> points; //point de lecture
 	Point pointActuel;
 	Point pointSuivant;
 
@@ -108,10 +107,10 @@ private:
 
 
     Graphe* maTable;
-    std::vector<Noeud*> currentItineraire;
-    std::vector<Point> cheminVersPoint;
+    vector<Noeud*> currentItineraire;
+    vector<Point> cheminVersPoint;
     bool pathfindingInAction;
-    std::list<int> currentPath;
+    list<int> currentPath;
     Point objectifAatteindre;
     Noeud* departPathfinding;
 

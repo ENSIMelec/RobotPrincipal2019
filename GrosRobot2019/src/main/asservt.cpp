@@ -82,7 +82,7 @@ int main(int argc, char **argv) {
 
 	char nomFile[100];
 	sprintf(nomFile, "filepoint3.1/%s/", argv[1]); //Dossier contenant le fichier main.strat et les fichier .point
-	Strategie strat(nomFile);
+	Strategie strat(nomFile, argv[1]);
 
 	//Setup Connexion udp to Serveur
 	string ipServeur = config.getIpServeur();

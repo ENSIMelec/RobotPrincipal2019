@@ -1,0 +1,118 @@
+asservissement {
+	; Temps d’attente entre chaque boucle d’asservissement, en ms.
+	; Attention : une valeur trop élevée sature le bus I2C !
+	delta_asserv 	10
+
+	temps_match 	100
+
+	nbAX12 			4
+
+	;ipServeur		127.0.0.1
+
+	;PC Etienne (dongle)
+	;ipServeur  	172.27.1.57
+
+	;PC Etienne (sans dongle)
+	;ipServeur  	172.27.1.117	
+
+	PC Quentin (sans dongle)
+	;ipServeur  		172.27.1.128
+
+	;PC Raphael
+	ipServeur 172.30.1.111
+	
+	;PC Baptiste
+	;ipServeur 172.30.1.85
+	
+	;PC Pierre	
+	;ipServeur 172.30.1.101
+
+	
+	;Raspberry
+	;ipServeur  	172.27.1.133
+	port 			1111
+
+	;KESCECE???????????????????????????????????????????????????????????????
+	;port 			2222
+
+	; Réglages du PID
+
+	;pid d'angle en angle
+	;pid_kpa 7
+	;pid_kia 0.08
+	;pid_kda 45
+	;pid_kpa 7
+	;pid_kia 0.08
+	;pid_kda 30
+	;Milharo
+	;pid_kpa 40
+	;pid_kia 0.1
+	;pid_kda 45
+	;pid_kpa 40
+	;pid_kia 0.08
+	;pid_kda 45
+
+	pid_kpa 25
+	pid_kia 0.06
+	pid_kda 45
+
+	
+	;pid d'angle en déplacement
+	;pid_kpdep 11
+	;pid_kidep 0
+	;pid_kddep 9
+	;vitesse 40 p:1.3
+
+	;pid_kpdep 		30
+	;pid_kidep 		0.8
+	;pid_kddep 		10
+
+	pid_kpdep 		20
+	pid_kidep 		0
+	pid_kddep 		5
+
+	; pid de position
+	;pid_kppos 0.004
+	;pid_kipos 0
+	;pid_kdpos 0
+	pid_kppos 		2
+	pid_kipos 		0
+	pid_kdpos 		1
+
+	;pid vitesse moyenne
+	pid_kpV_medium 	0.1
+	pid_kiV_medium 	0.005
+	pid_kdV_medium 	0
+
+	;Ne sert plus
+	;pid vitesse faible
+	pid_kpV_low 	0.1
+	pid_kiV_low 	0.005
+	pid_kdV_low 	0
+
+	;pid vitesse haute
+	pid_kpV_high 	0.1
+	pid_kiV_high 	0.005
+	pid_kdV_high 	0
+
+	; Réglages coefs déplacement
+	;CoeffGLong 		0.2132196162046908
+	;CoeffDLong 		0.2134471718249733
+	;CoeffGLong 0.2124946876328092
+	;CoeffDLong 0.2131741632914091
+
+	CoeffGLong 0.2132494620181157
+	CoeffDLong 0.2139313511526864
+
+
+	;CoefAngle Solveur
+	;CoeffAngl 0.0511967234097018
+	;CoeffAngl 0.0510457284650833
+
+	CoeffAngl 0.0510348738162745
+
+	; Adresses cartes arduino
+	I2C_SERVOS 64
+	I2C_LANCEUR 7
+	I2C_MOTEURS 8
+}

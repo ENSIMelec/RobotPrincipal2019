@@ -46,7 +46,7 @@ string PATH = "/home/pi/GrosRobot2019_Damien/";
 bool argc_control(int argc);
 bool argv_contains_dummy(int argc, char** argv);
 
-void communicationAvecKiroulpaThread(bool& robotConnecte, ClientUDP& client);
+int communicationAvecKiroulpaThread(bool& robotConnecte, ClientUDP& client);
 void actionThreadFunc(ActionManager& ACTION, string filename, bool& actionEnCours, bool& actionDone);
 
 void jouerMatch(Asservissement2018& asserv, Strategie& strat, MoteurManager *p_moteurs, ActionManager& actions, timer& temps,  ClientUDP& client);
@@ -194,7 +194,7 @@ void experienceThreadFunc(bool &confirm) {
 	}
 }
 
-void communicationAvecKiroulpaThread(bool& robotConnecte, ClientUDP& client) {
+int communicationAvecKiroulpaThread(bool& robotConnecte, ClientUDP& client) {
 	const int MAXBUFFERCOULEURS = 1024;
 	const int POORTCOMMKIROULPA = 3333;
 
@@ -202,8 +202,13 @@ void communicationAvecKiroulpaThread(bool& robotConnecte, ClientUDP& client) {
 
     struct sockaddr_in ipCommunication;
     ipCommunication.sin_family = AF_INET;
-    ipCommunication.sin_addr.s_addr = inet_addr("0.0.0.0");
+    ipCommunication.sin_addr.s_addr = inet_addr("172.30.1.1");
     ipCommunication.sin_port = htons(POORTCOMMKIROULPA);
+
+    struct sockaddr_in ipClient;
+    ipClient.sin_family = AF_INET;
+    ipClient.sin_addr.s_addr = inet_addr("172.30.1.2");
+    ipClient.sin_port = htons(POORTCOMMKIROULPA);
 
     socklen_t t = sizeof((struct sockaddr *)&ipCommunication);
 
@@ -212,17 +217,20 @@ void communicationAvecKiroulpaThread(bool& robotConnecte, ClientUDP& client) {
 
     int bd = bind(sock,(struct sockaddr *)&ipCommunication,sizeof(ipCommunication));
     if (bd == -1)
+    {
         perror("bind");
+        return -1;
+    }
 
     char buff[MAXBUFFERCOULEURS];
     ssize_t recu;
 
-    while(!robotConnecte && !confirmeBalance && !confirmeAccelerateur){
-    	recu = recvfrom (sock, buff, MAXBUFFERCOULEURS, 0, (struct sockaddr *)&ipCommunication, &t);
+    while(!robotConnecte || !(confirmeBalance && confirmeAccelerateur)){
+    	recu = recvfrom (sock, buff, MAXBUFFERCOULEURS, 0, (struct sockaddr *)&ipClient, &t);
 	    if(recu == -1)
 	        perror("erreur recvfrom\n");
 	    else{
-	        cout << "Recu : '" << buff << "'" << endl;
+	        cout << endl << endl << endl << "************************************ Recu : " << buff << "************************************" << endl << endl << endl;
 			if(buff[0] == 'B'){
 				confirmeBalance = true;
 				client.addPoints(24, 100);
@@ -235,8 +243,8 @@ void communicationAvecKiroulpaThread(bool& robotConnecte, ClientUDP& client) {
 				robotConnecte = true;
 			}
     	}
-    }
-    
+    } 
+    return 0;   
 }
 
 ///////////////////////////// PROGRAMME PRINCIPAL ///////////////////////////////
@@ -332,6 +340,8 @@ int main(int argc, char **argv) {
 	bool experienceLancee = false;
 	bool robotConnecte = false;
 	InitRobot init_robot(&electronLance, &experienceLancee, &robotConnecte);
+	thread (communicationAvecKiroulpaThread, ref(robotConnecte), ref(client)).detach();
+
 
 	bool waitForDevicesConnections = 0;
 	waitForDevicesConnections = config.get_WAIT_DEVICES_CONNECTIONS();

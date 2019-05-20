@@ -1,0 +1,23 @@
+Si le répertoire n'est pas le bon (:~ $)
+1) cd vrong/RobotPrincipal2018
+
+Lancer le robot :
+1) Positionner le robot au milieu de la table le long de la bordure
+2) Désactiver le bouton d'arret d'urgence (position haute)
+3) Mettre le jack
+4) sudo ./asservt demo
+5) Retirer le jack
+
+Déplacement du robot :
+1) Le robot se déplace jusqu'au milieu de la table
+2) Une fois au milieu il attend qu'un des capteurs à l'arrière s'active :
+    - Arrière gauche : le robot part du côté jaune
+    - Arrière droite : le robot part du côté bleu
+3) le robot effectue plusieur mouvement du coté sélectionné
+5) le robot retourne au milieu
+
+Blocage des capteurs à l'avant pendant 3s pour que le robot passe à l'objectif suivant
+
+Arret d'urgence :
+- Ctrl+c
+- Bouton d'urgence sur le robot

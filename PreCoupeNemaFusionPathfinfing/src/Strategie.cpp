@@ -7,10 +7,10 @@ const double max_weight = numeric_limits<double>::infinity();
 Strategie::Strategie(string path){
     cout << "--- Constructeur ---" << endl;
 
-    int cote_table;
+    /*int cote_table;
     maTable = new Graphe(1);
     pathfindingInAction = false;
-    indexItineraire = 0;
+    indexItineraire = 0;*/
 
     finished = false;
     pathFolder = path;

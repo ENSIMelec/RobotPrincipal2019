@@ -46,6 +46,7 @@ string PATH = "/home/pi/PreCoupeNemaFusionPathfinfing/";
 bool argc_control(int argc);
 bool argv_contains_dummy(int argc, char** argv);
 
+void couleurThreadFunc(Strategie& strat, ClientUDP& client);
 void actionThreadFunc(ActionManager& ACTION, string filename, bool& actionEnCours, bool& actionDone);
 
 void jouerMatch(Asservissement2018& asserv, Strategie& strat, MoteurManager *p_moteurs, ActionManager& actions, timer& temps,  ClientUDP& client);
@@ -67,14 +68,80 @@ void lidar(Lidar *lidar){
 		relancer = true;
 }
 
-void electronThreadFunc(){
-	system("curl 172.30.1.20/on");
-	sleepMillis(10000);
-	system("curl 172.30.1.20/off");
+void electronThreadFunc(bool &confirm){
+	int sockfd = socket(AF_INET,SOCK_DGRAM,IPPROTO_UDP);
+	struct sockaddr_in electron;
+	electron.sin_family = AF_INET;
+    electron.sin_port = htons(5757);
+    electron.sin_addr.s_addr = inet_addr("172.30.1.20");
+    char * paquetRecu;
+    string str_deb = "On";
+    string str_fin = "Off";
+
+    socklen_t addr = sizeof(electron);
+
+	/*Envoi de la commande de lancement*/
+	int lancement = sendto(sockfd, str_deb.c_str(), str_deb.size()+1, 0,(struct sockaddr *)&electron, addr);
+	if(lancement <= 0){
+		cout << "ERREUR LORS DE L'ENVOI" << endl;
+	}else{
+		cout << "Envoi réussi" << endl; 
+	}
+
+	/*Réception de la confirmation*/
+	int retour_deb =  recvfrom(sockfd, paquetRecu, 25, 0, (struct sockaddr *)&electron, &addr);
+	if(retour_deb <= 0){
+		cout << "Erreur lors de la réception" << endl;
+	}
+	else{
+		cout << "Message recu : " << paquetRecu << endl;
+	}
+
+	while(strcmp(paquetRecu, "OK") != 0){
+		sendto(sockfd, str_deb.c_str(), str_deb.size()+1, 0,(struct sockaddr *)&electron, addr);
+		recvfrom(sockfd, paquetRecu, 25, 0, (struct sockaddr *)&electron, &addr);
+	}
+
+	confirm = true;
+
 }
 
-void experienceThreadFunc(){
-	system("curl 172.30.1.30/on");
+void experienceThreadFunc(bool &confirm){
+	/*Déclaration de variables pour recevoir les datagrammes*/
+	int sockfd = socket(AF_INET,SOCK_DGRAM,IPPROTO_UDP);
+	struct sockaddr_in experience;
+	experience.sin_family = AF_INET;
+    experience.sin_port = htons(5757);
+    experience.sin_addr.s_addr = inet_addr("172.30.1.30");
+    char * paquetRecu;
+    string str = "On";
+
+
+	//system("curl 172.30.1.30/on");
+	/*Envoi de la commande*/
+	int envoi = sendto(sockfd, str.c_str(), str.size()+1, 0,(struct sockaddr *)&experience, sizeof(experience));
+	if(envoi <= 0){
+		cout << "ERREUR LORS DE L'ENVOI" << endl;
+	}else{
+		cout << "Envoi réussi" << endl; 
+	}
+
+	/*Réception de la confirmation*/
+	socklen_t addr = sizeof(experience);
+	int retour =  recvfrom(sockfd, paquetRecu, 25, 0, (struct sockaddr *)&experience, &addr);
+	if(retour <= 0){
+		cout << "Erreur lors de la réception" << endl;
+	}
+	else{
+		cout << "Message recu : " << paquetRecu << endl;
+	}
+
+	while(strcmp(paquetRecu, "OK") != 0){
+		sendto(sockfd, str.c_str(), str.size()+1, 0,(struct sockaddr *)&experience, sizeof(experience));
+		recvfrom(sockfd, paquetRecu, 25, 0, (struct sockaddr *)&experience, &addr);
+	}
+	confirm = true;
+
 }
 
 ///////////////////////////// PROGRAMME PRINCIPAL ///////////////////////////////
@@ -119,12 +186,15 @@ int main(int argc, char **argv) {
 	argv_contains_dummy(argc, argv); //En fonction des paramètres du main, on active les dummy motors ou non
 
 
+
 	// Création du groupement de deux codeurs
 	SerialCodeurManager codeurs(0);
 	//reset du lancement précédent
 	codeurs.Closes();
 	codeurs.Initialisation();
 	delay(100);
+
+
 
 	char nomFile[100];
 	sprintf(nomFile, "%sfilepoint3.1/%s/", PATH.c_str(), argv[1]); //Dossier contenant le fichier main.strat et les fichier .point
@@ -160,8 +230,11 @@ int main(int argc, char **argv) {
 	thread lidarThread1(lidar,lid);
 	cout<<"thread1 init"<<endl;
 
-	sleepMillis(1000);
+	sleepMillis(3000);
 	thread lidarThread2;
+
+	bool electronLance = false;
+	bool experienceLancee = false;
 
 	cout << "Attente du jack" << endl;
 	while(digitalRead(PIN_JACK) == 1) {
@@ -189,11 +262,15 @@ int main(int argc, char **argv) {
 	cout <<"Codeur reset"<<endl;
 	nbAppelsAsserv = 0;
 
+	cout << "Lancement du thread de recepetion des couleurs" << endl;
+	//thread (couleurThreadFunc, ref(strat), ref(client)).detach();//créer un nouveau Thread qui attend la reception des couleurs et qui met à jour un statut strategie
+
 	//Lancement des threads pour l'électron et l'expérience
-	thread(electronThreadFunc).detach();
-	thread(experienceThreadFunc).detach();
+	thread (electronThreadFunc, ref(electronLance)).detach();
+	thread (experienceThreadFunc, ref(experienceLancee)).detach();
 	
-	/* Commenté par Sandra, plus besoin sur le nouveau robot ?
+	
+	
 	if(!relancer){
 		goto statement;
 	}
@@ -203,7 +280,9 @@ int main(int argc, char **argv) {
 	cout<<"thread2 init"<<endl;
 	sleepMillis(1000);
 	
-statement:*/
+statement:
+	
+	
 	
 	jouerMatch(ref(asserv), ref(strat), p_moteurs, ref(actions), ref(temps), ref(client));
 
@@ -252,6 +331,7 @@ void actionThreadFunc(ActionManager& ACTION, string filename, bool& actionEnCour
 }
 
 
+
 void jouerMatch(Asservissement2018& asserv, Strategie& strat, MoteurManager *p_moteurs, ActionManager& actions, timer& temps, ClientUDP& client) {
 	BlocageManager blocage(lid); //Gestionnaire de blocage
 	timer tempsBlocage, asservTimer, timeOut;
@@ -275,12 +355,8 @@ void jouerMatch(Asservissement2018& asserv, Strategie& strat, MoteurManager *p_m
 				//Blocage des noeuds autour de celui qu'on détecte
 				int XNodeToBlock, YNodeToblock;
 				lid->cartesianFromLidar(&XNodeToBlock, &YNodeToblock);
-				
-
 				cout << "Point bloque : " << XNodeToBlock << " ; " << YNodeToblock << endl;
 				Point robotBloqueIci = asserv.getCoordonnees();
-
-				/*
 				if(robotBloqueIci.getX() >= 0 && strat.getPointActuel().getSens() == 0){
 					XNodeToBlock = robotBloqueIci.getX() - XNodeToBlock;
 					YNodeToblock = robotBloqueIci.getY() - YNodeToblock;
@@ -289,9 +365,6 @@ void jouerMatch(Asservissement2018& asserv, Strategie& strat, MoteurManager *p_m
 					XNodeToBlock = robotBloqueIci.getX() + XNodeToBlock;
 					YNodeToblock = robotBloqueIci.getY() + YNodeToblock;
 				}
-				*/
-
-				asserv.PositionAbs(XNodeToBlock, YNodeToblock, &XNodeToblock, &YNodeToblock);
 				
 				cout << "Point bloque : " << XNodeToBlock << " ; " << YNodeToblock << endl;
 
@@ -407,7 +480,6 @@ void jouerMatch(Asservissement2018& asserv, Strategie& strat, MoteurManager *p_m
 	return;
 }
 
-/* Commenté par Sandra : inutile
 bool recontreObstacle(Strategie& strat, PositionBlocage posBloc) {
 	int sensDeplacement = strat.getSensDeplacement();
 	int optionDetection = strat.getOptionDetection();
@@ -421,7 +493,6 @@ bool recontreObstacle(Strategie& strat, PositionBlocage posBloc) {
 		return false;
 	}
 }
-*/
 
 bool ARUisNotPush() {
 	return digitalRead(PIN_ARU) == 1;

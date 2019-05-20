@@ -5,7 +5,7 @@
 //Graphe::Graphe(){}
 Graphe::Graphe(int monCote)
 {
-    this->graph = Map(monCote);
+    graph = Map(monCote);
 }
 
 //Fonction qui fait l'algo de Dijkstra

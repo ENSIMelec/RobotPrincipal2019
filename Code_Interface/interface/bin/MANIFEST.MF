@@ -1,0 +1,2 @@
+Main-Class: Main
+Class-Path: \C:\Users\cecil\Documents\ENSIM_Elec\LogicielCayon\interface\lib\jcabi-ssh-1.6-jar-with-dependencies

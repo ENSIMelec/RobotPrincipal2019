@@ -7,6 +7,7 @@ ActionManager::ActionManager(int i2c_Servos, int i2c_Stepper, int nbAX12, Client
 	client(udp), servos(i2c_Servos), stepper(i2c_Stepper),  AX12(nbAX12)
 {
 	stepper.goHome();
+	servos.servoInitialisation();
 	printf("Constructeur action");
 }
 
@@ -51,7 +52,7 @@ void ActionManager::action(string filname) {
 				break;
 			case 'P':
 				client.sendMessage("I Ajout de "+to_string(numActionneur)+" points");
-				client.addPoints(numActionneur);
+				client.addPoints(numActionneur, angleAction);
 				break;
 			case 'A':
 				tempsAction -= AX12.AX12Action(numActionneur, angleAction, forceAction); //On effectue l'action AX12, on met à jour le temps qu'il reste avant la fin de l'action

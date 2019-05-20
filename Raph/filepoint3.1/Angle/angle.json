@@ -12,7 +12,7 @@
       "type": "Angle",
       "angle": 90,
       "deltaAngle": 1.0,
-      "vitesse": 800,
+      "vitesse": 400,
       "blocage": "aucun",
       "timeOut": 0,
       "action": "null",

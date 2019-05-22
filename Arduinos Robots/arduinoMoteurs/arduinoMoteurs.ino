@@ -43,7 +43,7 @@ void setup() {
   TCCR1B = (TCCR1B & 0b11111000) | 1;
   TCCR2B = (TCCR2B & 0b11111000) | 1;
   
-  //Serial.println("STARTING");
+  //erial.println("STARTING");
 }
 
 void loop() { delay(1); }

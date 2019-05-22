@@ -20,11 +20,14 @@ StepperManager::StepperManager()
     homed = false;
     init = true;
     Multiplier = 50;
+    writeError("Test if it works");
+
 
     i2c_stepper = open(device, O_RDWR);
     if (exitSafeStart() == -1)
     {
         perror(device);
+        writeError("constructor");
         init = false;
 
     }
@@ -37,7 +40,6 @@ StepperManager::StepperManager()
             setStepMode(2);
 
             setSpeed(50);
-            printf("Multiplier constructeur : %d \n",Multiplier);
             goAway();
             goHome();
         }
@@ -57,7 +59,7 @@ int StepperManager::setPosition(int pos)
 
     if(!init)
     {
-
+        writeError("setPosition not init");
         return -3;
     }
     while(!homed);
@@ -77,16 +79,19 @@ int StepperManager::setPosition(int pos)
 
 
     int targetPosRead = -1;
+    int i = 0;
     do
     {
-
+        printf("set Position : %d et targetPosRead : %d\n",pos, targetPosRead);
         getTargetPosition(&targetPosRead);
         if(targetPosRead == 0)
         {
             result = ioctl(i2c_stepper, I2C_RDWR, &ioctl_data);
 
         }
-    }while(targetPosRead != pos );
+        printf("set Position : %d et targetPosRead : %d\n",pos, targetPosRead);
+        usleep(100000);
+    }while(targetPosRead != pos && i++<30 );
 
 
     return 0;
@@ -115,6 +120,7 @@ int StepperManager::goAway()
 
 
     int targetPosRead = -1;
+    int i = 0;
     do
     {
 
@@ -124,7 +130,8 @@ int StepperManager::goAway()
             result = ioctl(i2c_stepper, I2C_RDWR, &ioctl_data);
 
         }
-    }while(targetPosRead != pos );
+        usleep(100000);
+    }while(targetPosRead != pos && i++ < 30 );
 
 
     return 0;
@@ -250,6 +257,7 @@ int StepperManager::goHome()
     if (result != 1)
     {
         perror("failed to go Home");
+        init = false;
         return -1;
     }
     bool homing = true;
@@ -327,6 +335,7 @@ int StepperManager::getTargetPosition(int32_t *output)
     if (result<0) { return -1; }
     *output = buffer[0] + ((uint32_t)buffer[1] << 8) +
             ((uint32_t)buffer[2] << 16) + ((uint32_t)buffer[3] << 24);
+    printf("getTargetPosition : %d\n", *output);
     return 0;
 }
 
@@ -392,6 +401,15 @@ int StepperManager::closeStep()
 
     deEnergize();
     int result = close(i2c_stepper);
-       return result;
+    return result;
 }
 
+int StepperManager::writeError(char *error)
+{
+    extern char *__progname;
+    FILE *fp;
+
+    fp = fopen("error.txt", "a");
+    fprintf(fp, "Error from nema in %s with the function %s\n\r",__progname,error);
+    fclose(fp);
+}

@@ -139,7 +139,7 @@ vector<Noeud*> Map::getMapping(){
 void Map::debloquerTousLesNoeuds(){
     cout << "taille de la map : " << taille << endl;
     for(int i = 0; i < mapping.size(); i++){
-        cout << "numero noeud : " << i << endl;
+        //cout << "numero noeud : " << i << endl;
         DebloquerNoeud(i);
     }
 }
@@ -167,6 +167,6 @@ Noeud* Map::noeudLePlusProche(Noeud* noeudActuel){
             index = i;
         }
     }
-    cout << "Id final : " << mapping[index]->getX() << " | Id du Noeud : " << mapping[index]->getY() << endl;
+    //cout << "Id final : " << mapping[index]->getX() << " | Id du Noeud : " << mapping[index]->getY() << endl;
     return mapping[index];
 }

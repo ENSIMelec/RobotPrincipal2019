@@ -18,7 +18,8 @@ codeurs(cods)
 	CoeffGLong =  conf.getCoeffGLong();
 	CoeffDLong =  conf.getCoeffDLong();
 
-	CoeffAngl = conf.getCoeffAngl();
+	CoeffAnglD = conf.getCoeffAnglD();
+	CoeffAnglG = conf.getCoeffAnglG();
 
 	kpA = conf.getPIDkpA();
 	kiA = conf.getPIDkiA();
@@ -144,7 +145,7 @@ void Asservissement2018::odometrie(){
 	y = y + dY;
 
 	//Calcul de l'angle réalisé
-	mesure_angle = CoeffAngl*(comptG-comptD);
+	mesure_angle = CoeffAnglG*comptG-CoeffAnglD*comptD;
 	angle = angle + mesure_angle;
 
 	if(angle<-180){
@@ -514,12 +515,12 @@ void Asservissement2018::asservVitesse(double vitConsigneG, double vitConsigneD)
 
 	if(pointActuel.getDerapage()== true){//détection de dérapage
 		cout <<"Wait Burn, Gauche : "<< abs(cmdG) <<" vitG: "<<abs(vitG)<<" ,Droite: "<< abs(cmdD)<<" vitD: "<<abs(vitD)<<endl;
-		if(abs(cmdG)>=150 && abs(vitG)<5){
+		if(abs(cmdG)>=50 && abs(vitG)<5){
 			cmdG=0;
 			cout<<"Dérapage Gauche"<<endl;
 		}
 
-		if(abs(cmdD)>=150 && abs(vitD)<5){
+		if(abs(cmdD)>=50 && abs(vitD)<5){
 			cmdD=0;
 			cout<<"Dérapage Droite"<<endl;
 		}
@@ -529,7 +530,7 @@ void Asservissement2018::asservVitesse(double vitConsigneG, double vitConsigneD)
 		}
 	}else{
 		cout<< "PID vit "<< PID_G <<" "<< PID_D<<endl;
-		if((abs(cmdG) >= 100 && abs(vitG)<=5) || (abs(cmdD)>= 100 && abs(vitD)<=5)){
+		if((abs(cmdG) >= 150 && abs(vitG)<=5) || (abs(cmdD)>= 150 && abs(vitD)<=5)){
 			//Dérapage imprévu
 			cout<< "\t ####### Robot bloqué #######"<<endl;
 			moteurBloque = true;

@@ -114,6 +114,7 @@ public:
 
     int closeStep();
 
+    static int writeError(char *error);
 protected:
 
     /*!

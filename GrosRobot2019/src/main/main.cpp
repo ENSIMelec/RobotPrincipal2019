@@ -39,7 +39,7 @@ unsigned int nbAppelsAsserv;
 bool forcing_stop;
 unsigned int nbActionFileExecuted;
 
-string PATH = "/home/pi/GrosRobot2019_Damien/";
+string PATH = "/home/pi/GrosRobot2019/";
 
 /********************************* prototypes **********************************/
 
@@ -340,7 +340,7 @@ int main(int argc, char **argv) {
 	bool experienceLancee = false;
 	bool robotConnecte = false;
 	InitRobot init_robot(&electronLance, &experienceLancee, &robotConnecte);
-	thread (communicationAvecKiroulpaThread, ref(robotConnecte), ref(client)).detach();
+	thread (electronThreadFunc, ref(electronLance)).detach();
 
 
 	bool waitForDevicesConnections = 0;

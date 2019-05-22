@@ -11,7 +11,6 @@
 // bien faîte mais elle fonctionne.
 #include "pca9685.h"
 
-
 class ServoManager
 {
 

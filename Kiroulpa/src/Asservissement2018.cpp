@@ -514,12 +514,12 @@ void Asservissement2018::asservVitesse(double vitConsigneG, double vitConsigneD)
 
 	if(pointActuel.getDerapage()== true){//détection de dérapage
 		cout <<"Wait Burn, Gauche : "<< abs(cmdG) <<" vitG: "<<abs(vitG)<<" ,Droite: "<< abs(cmdD)<<" vitD: "<<abs(vitD)<<endl;
-		if(abs(cmdG)>=150 && abs(vitG)<5){
+		if(abs(cmdG)>=50 && abs(vitG)<5){
 			cmdG=0;
 			cout<<"Dérapage Gauche"<<endl;
 		}
 
-		if(abs(cmdD)>=150 && abs(vitD)<5){
+		if(abs(cmdD)>=50 && abs(vitD)<5){
 			cmdD=0;
 			cout<<"Dérapage Droite"<<endl;
 		}

@@ -32,9 +32,6 @@ asservissement {
 	;ipServeur  	172.27.1.133
 	port 			1111
 
-	;KESCECE???????????????????????????????????????????????????????????????
-	;port 			2222
-
 	; Réglages du PID
 
 	;pid d'angle en angle
@@ -96,20 +93,21 @@ asservissement {
 	pid_kdV_high 	0
 
 	; Réglages coefs déplacement
-	;CoeffGLong 		0.2132196162046908
-	;CoeffDLong 		0.2134471718249733
-	;CoeffGLong 0.2124946876328092
-	;CoeffDLong 0.2131741632914091
 
-	CoeffGLong 0.212866603595
-	CoeffDLong 0.21382751244732
+	CoeffGLong 0.2192765113974
+	CoeffDLong 0.2188427299703
+	
+	
+
+
 
 
 	;CoefAngle Solveur
 	;CoeffAngl 0.0511967234097018
 	;CoeffAngl 0.0510457284650833
 
-	CoeffAngl 0.0510348738162745
+	CoeffAnglD 0.0518381441850994
+	CoeffAnglG 0.0518739981486097
 
 	; Adresses cartes arduino
 	I2C_SERVOS 64
@@ -117,6 +115,6 @@ asservissement {
 	I2C_MOTEURS 8
 	I2C_STEPPER 9
 
-	;Booleen pour attendre ou non la connexion de l'électron, l'expérience et le deuxième robot: 0 non, 1 oui
+	;Booleen pour attendre ou non la connexion de l'électron, l'expérience et le deuxième robot: 0 non, 1 oui (tjrs 0 pour le petit)
 	WAIT_DEVICES_CONNECTIONS 0
 }

@@ -44,7 +44,8 @@ void Config::loadFromFile(string filename)
 
 	CoeffGLong = tree.get<double>("asservissement.CoeffGLong");
 	CoeffDLong = tree.get<double>("asservissement.CoeffDLong");
-	CoeffAngl = tree.get<double>("asservissement.CoeffAngl");
+	CoeffAnglD = tree.get<double>("asservissement.CoeffAnglD");
+	CoeffAnglG = tree.get<double>("asservissement.CoeffAnglG");
 
 	I2C_SERVOS = tree.get<int>("asservissement.I2C_SERVOS");
 	I2C_LANCEUR = tree.get<int>("asservissement.I2C_LANCEUR");
@@ -93,7 +94,8 @@ double Config::getPIDkdVHigh() const { return pid_kdV_high; }
 
 double Config::getCoeffGLong() const { return CoeffGLong; }
 double Config::getCoeffDLong() const { return CoeffDLong; }
-double Config::getCoeffAngl() const { return CoeffAngl; }
+double Config::getCoeffAnglD() const { return CoeffAnglD; }
+double Config::getCoeffAnglG() const { return CoeffAnglG; }
 
 int Config::get_I2C_SERVOS() const { return I2C_SERVOS; }
 int Config::get_I2C_LANCEUR() const { return I2C_LANCEUR; }
@@ -115,7 +117,7 @@ void Config::afficherConfig() const {
 
 	cout << "Coefficients : " << endl;
 	cout << "-Longueur :" << endl << "\tGauche : " << getCoeffGLong() << endl << "\tDroite : " << getCoeffDLong() << endl;
-	cout << "-Angle : "<< getCoeffAngl()<< endl;
+	cout << "-Angle Droite: "<< getCoeffAnglD()<< "Angle Gauche" << getCoeffAnglG() << endl;
 
 	cout << "PID : " << endl;
 	cout << "-Vitesse faible:" << endl << "\tP = " << getPIDkpVLow() << endl << "\tI = " << getPIDkiVLow() << endl << "\tD = " << getPIDkdVLow() << endl;

@@ -134,7 +134,7 @@ private:
     double CoeffGLong;
 	double CoeffDLong;
 
-    double CoeffAngl;
+    double CoeffAnglD, CoeffAnglG;
 
 
     double mesure_dist, mesure_angle, mesure_vitesse;

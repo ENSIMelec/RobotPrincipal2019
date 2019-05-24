@@ -1,8 +1,0 @@
-#courbe to interrupteur
--90 777 100 1 0 160 0 0 1 1 0 0 null 
-#Courbe to interrupteur
--460 290 60 1 0 160 0 0 0 1 0 0 null 
-#Angle interrupteur
--460 290 180 0 0 100 0 0 0 1 0 0 null 
-#Derapage interrupteur
--460 -200 60 1 0 70 1 0 1 0 0 1 null 

@@ -734,6 +734,6 @@ void Asservissement2018::PositionAbs(int xRelatif, int yRelatif, int *xAbso, int
 	double teta = (angle - 90) / 180 * M_PI;
 	double cosTeta = cos(teta);
 	double sinTeta = sin(teta);
-	*xAbso = (int)(cosTeta * xRelatif - sinTeta * yRelatif + x);
-	*yAbso = (int)(sinTeta * xRelatif + cosTeta * yRelatif + y);
+	*xAbso = (int)(cosTeta * xRelatif + sinTeta * xRelatif + x);
+	*yAbso = (int)(- sinTeta * yRelatif + cosTeta * yRelatif + y);
 }

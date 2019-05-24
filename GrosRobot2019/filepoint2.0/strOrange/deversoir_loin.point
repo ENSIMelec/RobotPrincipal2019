@@ -1,8 +1,0 @@
-#Recule pour reservoir
-890 1750 35 1 1 100 1 0 0 0 0 0 null 
-#Angle deversoir
-890 1750 -90 0 0 100 0 0 0 0 0 0 null 
-#Angle to tire
-890 1750 -145 0 0 100 0 0 0 0 0 0 null 
-#Position tire
-840 1677 60 1 0 160 1 0 0 0 0 0 null 

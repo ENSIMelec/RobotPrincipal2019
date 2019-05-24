@@ -1,6 +1,0 @@
-#360 go to interrupteur
-475 594 60 1 0 40 1 0 0 0 0 0 null
-#perpendiculaire a l'interrupteur
-475 400 180 0 0 100 1 0 0 0 0 0 null
-#activation interrupteur
-475 167 60 1 0 30 1 0 0 0 0 0 null 

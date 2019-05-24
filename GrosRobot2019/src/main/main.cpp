@@ -64,7 +64,6 @@ bool relancer = false;
 void lidar(Lidar *lidar){
 		lidar->Scan();
 		cout<<"thread Lidar"<<endl;
-		relancer = true;
 }
 
 void electronThreadFunc(bool &confirm){
@@ -330,12 +329,6 @@ int main(int argc, char **argv) {
 	lid = new Lidar();	
 	cout<<"lid init"<<endl;
 
-	thread lidarThread1(lidar,lid);
-	cout<<"thread1 init"<<endl;
-
-	sleepMillis(3000);
-	thread lidarThread2;
-
 	bool electronLance = false;
 	bool experienceLancee = false;
 	bool robotConnecte = false;
@@ -375,19 +368,6 @@ int main(int argc, char **argv) {
 	codeurs.reset();
 	cout <<"Codeur reset"<<endl;
 	nbAppelsAsserv = 0;
-	
-	
-	if(!relancer){
-		goto statement;
-	}
-	
-	lid = new Lidar();
-	lidarThread2 = thread{lidar,lid};
-	cout<<"thread2 init"<<endl;
-	sleepMillis(1000);
-	
-statement:
-	
 	
 	
 	jouerMatch(ref(asserv), ref(strat), p_moteurs, ref(actions), ref(temps), ref(client));
@@ -437,7 +417,6 @@ void actionThreadFunc(ActionManager& ACTION, string filename, bool& actionEnCour
 }
 
 
-
 void jouerMatch(Asservissement2018& asserv, Strategie& strat, MoteurManager *p_moteurs, ActionManager& actions, timer& temps, ClientUDP& client) {
 	BlocageManager blocage(lid); //Gestionnaire de blocage
 	timer tempsBlocage, asservTimer, timeOut;
@@ -446,9 +425,11 @@ void jouerMatch(Asservissement2018& asserv, Strategie& strat, MoteurManager *p_m
 	//Saute le point d'initialisation
 	nbActionFileExecuted = 0;
 
+	timeOut.restart();
+
 	while(!forcing_stop && strat.isNotFinished() && temps.elapsed_s() < temps_match && InitRobot::aruIsNotPush()) {
 	//Tant qu'on ne force pas l'arrêt, et que la strat n'est pas terminée, et qu'on dépasse pas le temps
-		if((!strat.haveToWaitActionDone() || actionDone) && (asserv.demandePointSuivant() || weAreBlocked || ((temps.elapsed_ms() > strat.getTimeOut()) && (strat.getTimeOut() != 0)))) {
+		if((!strat.haveToWaitActionDone() || actionDone) && (asserv.demandePointSuivant() || weAreBlocked || ((timeOut.elapsed_ms() > strat.getTimeOut()) && (strat.getTimeOut() != 0)))) {
 		//Si on a pas besoin d'attendre la fin de l'action en cours ET
 			//que l'asservissement demande le point suivant (parce qu'on est arrivé à destination)
 			//ou qu'on est bloqué et qu'on doit changer de point
@@ -456,46 +437,55 @@ void jouerMatch(Asservissement2018& asserv, Strategie& strat, MoteurManager *p_m
 			cout << "changement de point" << endl;
 
 			if(weAreBlocked){
-				cout << "WeAreBlocked" <<endl;
+				cout << endl << endl << "************************* WeAreBlocked *************************" <<endl << endl;
 
 				//Blocage des noeuds autour de celui qu'on détecte
-				int XNodeToBlock, YNodeToblock;
-				lid->cartesianFromLidar(&XNodeToBlock, &YNodeToblock);
-				cout << "Point bloque : " << XNodeToBlock << " ; " << YNodeToblock << endl;
-				Point robotBloqueIci = asserv.getCoordonnees();
-				if(robotBloqueIci.getX() >= 0 && strat.getPointActuel().getSens() == 0){
-					XNodeToBlock = robotBloqueIci.getX() - XNodeToBlock;
-					YNodeToblock = robotBloqueIci.getY() - YNodeToblock;
-				}
-				else if(robotBloqueIci.getX() < 0 && strat.getPointActuel().getSens() == 0){
-					XNodeToBlock = robotBloqueIci.getX() + XNodeToBlock;
-					YNodeToblock = robotBloqueIci.getY() + YNodeToblock;
-				}
+				int XNodeToBlock, YNodeToBlock;
+				lid->cartesianFromLidar(&XNodeToBlock, &YNodeToBlock);
+				cout << "Point bloqué avant transformation en absolu : " << XNodeToBlock << " ; " << YNodeToBlock << endl;
+
+				asserv.PositionAbs(XNodeToBlock, YNodeToBlock, &XNodeToBlock, &YNodeToBlock);
+				cout << "Point bloqué après transformation en absolu : " << XNodeToBlock << " ; " << YNodeToBlock << endl;
+
+				//if(Point::isOnTable(XNodeToBlock, YNodeToBlock)){
+					strat.getMaTable()->getMap().debloquerTousLesNoeuds(); 
+					Noeud nodeToBlock(false, new Coordonnee(XNodeToBlock, YNodeToBlock), strat.getMaTable()->getMap().getMapping().size());
+					strat.blockNodes(&nodeToBlock);
+
+					//On se prépare à reculer vers le noeud le plus proche de l'endroit de la table où on se trouve
+					strat.setObjectifAatteindre(strat.getPointActuel());
+					Noeud* currentNode = strat.createNodeByPoint(asserv.getCoordonnees());
+					Noeud* noeudPlusProche = strat.getMaTable()->graph.noeudLePlusProche(currentNode);
+					cout << "Noeud le plus proche trouvé : " << noeudPlusProche->getId() << endl;
+					Point pointRecul = strat.convertNodeIntoPoint(noeudPlusProche);
+					cout << "On recule vers X: "<< pointRecul.getX() << ", Y: " << pointRecul.getY() << endl;
+
+					pointRecul.setSens(1);
+					pointRecul.setVitesse(150);
+					asserv.pointSuivant(pointRecul);
+
+					// Préparation pour le pathfinding
+					strat.setPathfindingInAction(true);
+					strat.setDepartPathfinding(pointRecul);
+					lid->detectionArriere = true;
+
+				//}
 				
-				cout << "Point bloque : " << XNodeToBlock << " ; " << YNodeToblock << endl;
-
-				Noeud nodeToBlock(false, new Coordonnee(XNodeToBlock, YNodeToblock), strat.getMaTable()->getMap().getMapping().size());
-				strat.blockNodes(&nodeToBlock);
-
-				//On se prépare à reculer vers le noeud le plus proche de l'endroit de la table où on se trouve
-
-				strat.setObjectifAatteindre(strat.getPointActuel());
-				Noeud* currentNode = strat.createNodeByPoint(asserv.getCoordonnees());
-				cout <<"currentNode cree" <<endl;
-				Noeud* noeudPlusProche = strat.getMaTable()->graph.noeudLePlusProche(currentNode);
-				cout <<"noeudPlusProche cree : " << noeudPlusProche->getId() <<endl;
-				Point pointRecul = strat.convertNodeIntoPoint(noeudPlusProche);
-				cout <<"pointRecul cree" <<endl;
-
-				pointRecul.setSens(1);
-				pointRecul.setVitesse(400);
-				asserv.pointSuivant(pointRecul);
-
-				// Préparation pour le pathfinding
-				strat.setPathfindingInAction(true);
-				strat.setDepartPathfinding(pointRecul);
 			}else{
 				asserv.pointSuivant(strat.getPointSuivant()); // On demande le point suivant à la strategie (elle met à jour le point actuel/courant), et on le donne à l'asservissement
+				//Gestion des capteurs
+				if(asserv.getPointActuel().getDetection() == 1){			
+					lid->detectionAvant = true;
+					lid->detectionArriere = false;
+				}
+				else if(asserv.getPointActuel().getDetection() == 2){
+					lid->detectionAvant = false;
+					lid->detectionArriere = true;
+				}
+				else{
+					lid->detectionAvant = false;
+					lid->detectionArriere = false;
+				}
 			}
 
 
@@ -527,28 +517,12 @@ void jouerMatch(Asservissement2018& asserv, Strategie& strat, MoteurManager *p_m
 			//asserv.pointSuivant(strat.eloigner(asserv.getCoordonnees(), 200)); //On demande à l'asserv de l'éloigner de 200mm du point actuel
 		}
 
-		//Gestion des capteurs
-
-
-		if(asserv.getPointActuel().getDetection() == 1){			
-			lid->detectionAvant = true;
-			lid->detectionArriere = false;
-		}
-		else if(asserv.getPointActuel().getDetection() == 2){
-			lid->detectionAvant = false;
-			lid->detectionArriere = true;
-		}
-		else{
-			lid->detectionAvant = false;
-			lid->detectionArriere = false;
-		}
-
 		//cout << "Pallier : " << lid->speed << endl;
 		switch(lid->speed){
 			case 1: asserv.setVitessePointActuel(166); break;
 			case 2: asserv.setVitessePointActuel(333); break;
-			case 3: asserv.setVitessePointActuel(500); break;
-			default: asserv.setVitessePointActuel(500); break;
+			case 3: asserv.setVitessePointActuel(strat.getPointActuel().getVitesse()); break;
+			default: asserv.setVitessePointActuel(strat.getPointActuel().getVitesse()); break;
 		}
 		//cout << "La vitesse d'arrivée au point = " << asserv.getPointActuel().getVitesse() << endl;
 
@@ -565,9 +539,12 @@ void jouerMatch(Asservissement2018& asserv, Strategie& strat, MoteurManager *p_m
 		p_moteurs->dummyBlocage = false; //On débloque les moteurs
 		//Maintenant, soit le temps est dépassé (et donc il y a techniquement encore l'obstacle), soit le temps n'est pas dépassé (et donc il n'y a plus d'obstacle)
 		//posBloc = blocage.isBlocked();
+		//cout << "Vitesse après analyse Lidar : " << asserv.getPointActuel().getVitesse() << endl;
 		if(lid->speed == 0 && InitRobot::aruIsNotPush() && temps.elapsed_s() < temps_match) { //Si il y a encore un obstacle genant
 			p_moteurs->stop(); //On arrête les moteurs (au final, on a fait, si besoin, un petit déplacement en 1 seconde)
 			strat.setStatut("Bloque");
+			cout <<endl << endl << "************************* LIDAR DETECTION *************************" <<endl << endl;
+
 			weAreBlocked = true; //On doit changer de point, sachant qu'on dit à la strat qu'on est bloqué -> On va changer d'objectif
 		}
 
@@ -584,20 +561,6 @@ void jouerMatch(Asservissement2018& asserv, Strategie& strat, MoteurManager *p_m
 	sleepMillis(100);
 	strat.getPointActuel().display();
 	return;
-}
-
-bool recontreObstacle(Strategie& strat, PositionBlocage posBloc) {
-	int sensDeplacement = strat.getSensDeplacement();
-	int optionDetection = strat.getOptionDetection();
-
-	if( (sensDeplacement == 0 && optionDetection == 1 && (posBloc == PositionBlocage::AVANT)) ||
-		(sensDeplacement == 1 && optionDetection == 2 && (posBloc == PositionBlocage::ARRIERE)) ||
-		(optionDetection == 3 && posBloc != PositionBlocage::AUCUN))
-	{
-		return true;
-	} else { //Si on est pas gené par un obstacle
-		return false;
-	}
 }
 
 bool argc_control(int argc) {

@@ -1,1 +1,123 @@
-{"Points":[{"commentaire":"","type":"RecalageXY","X":-1000,"Y":1000,"angle":90},{"commentaire":"","type":"Deplacement","X":-500,"Y":1000,"deltaDeplacement":5,"deltaAngle":1.0,"vitesse":700,"sens":"avant","blocage":"aucun","coefCourbe":0.0,"lissage":false,"derapage":false,"timeOut":0,"action":"null","attAction":false},{"commentaire":"","type":"Angle","angle":180,"deltaAngle":1.0,"vitesse":700,"blocage":"aucun","timeOut":0,"action":"null","attAction":false},{"commentaire":"","type":"Deplacement","X":-500,"Y":500,"deltaDeplacement":5,"deltaAngle":1.0,"vitesse":700,"sens":"avant","blocage":"aucun","coefCourbe":0.0,"lissage":false,"derapage":false,"timeOut":0,"action":"null","attAction":false},{"commentaire":"","type":"Angle","angle":-90,"deltaAngle":1.0,"vitesse":700,"blocage":"aucun","timeOut":0,"action":"null","attAction":false},{"commentaire":"","type":"Deplacement","X":-1000,"Y":500,"deltaDeplacement":5,"deltaAngle":1.0,"vitesse":700,"sens":"avant","blocage":"aucun","coefCourbe":0.0,"lissage":false,"derapage":false,"timeOut":0,"action":"null","attAction":false},{"commentaire":"","type":"Angle","angle":0,"deltaAngle":1.0,"vitesse":700,"blocage":"aucun","timeOut":0,"action":"null","attAction":false},{"commentaire":"","type":"Deplacement","X":-1000,"Y":1000,"deltaDeplacement":5,"deltaAngle":1.0,"vitesse":700,"sens":"avant","blocage":"aucun","coefCourbe":0.0,"lissage":false,"derapage":false,"timeOut":0,"action":"null","attAction":false},{"commentaire":"","type":"Angle","angle":90,"deltaAngle":1.0,"vitesse":400,"blocage":"aucun","timeOut":0,"action":"null","attAction":false}]}
+{
+  "Points": [
+    {
+      "commentaire": "",
+      "type": "RecalageXY",
+      "X": -1000,
+      "Y": 1000,
+      "angle": 90
+    },
+    {
+      "commentaire": "",
+      "type": "Deplacement",
+      "X": -500,
+      "Y": 1000,
+      "deltaDeplacement": 5,
+      "deltaAngle": 1.0,
+      "vitesse": 700,
+      "sens": "avant",
+      "blocage": "aucun",
+      "coefCourbe": 0.0,
+      "lissage": false,
+      "derapage": false,
+      "timeOut": 0,
+      "action": "null",
+      "attAction": false
+    },
+    {
+      "commentaire": "",
+      "type": "Angle",
+      "angle": 180,
+      "deltaAngle": 0.1,
+      "vitesse": 700,
+      "blocage": "aucun",
+      "timeOut": 0,
+      "action": "null",
+      "attAction": false
+    },
+    {
+      "commentaire": "",
+      "type": "Deplacement",
+      "X": -500,
+      "Y": 500,
+      "deltaDeplacement": 5,
+      "deltaAngle": 1.0,
+      "vitesse": 700,
+      "sens": "avant",
+      "blocage": "aucun",
+      "coefCourbe": 0.0,
+      "lissage": false,
+      "derapage": false,
+      "timeOut": 0,
+      "action": "null",
+      "attAction": false
+    },
+    {
+      "commentaire": "",
+      "type": "Angle",
+      "angle": -90,
+      "deltaAngle": 0.1,
+      "vitesse": 700,
+      "blocage": "aucun",
+      "timeOut": 0,
+      "action": "null",
+      "attAction": false
+    },
+    {
+      "commentaire": "",
+      "type": "Deplacement",
+      "X": -1000,
+      "Y": 500,
+      "deltaDeplacement": 5,
+      "deltaAngle": 1.0,
+      "vitesse": 700,
+      "sens": "avant",
+      "blocage": "aucun",
+      "coefCourbe": 0.0,
+      "lissage": false,
+      "derapage": false,
+      "timeOut": 0,
+      "action": "null",
+      "attAction": false
+    },
+    {
+      "commentaire": "",
+      "type": "Angle",
+      "angle": 0,
+      "deltaAngle": 0.1,
+      "vitesse": 700,
+      "blocage": "aucun",
+      "timeOut": 0,
+      "action": "null",
+      "attAction": false
+    },
+    {
+      "commentaire": "",
+      "type": "Deplacement",
+      "X": -1000,
+      "Y": 1000,
+      "deltaDeplacement": 5,
+      "deltaAngle": 1.0,
+      "vitesse": 700,
+      "sens": "avant",
+      "blocage": "aucun",
+      "coefCourbe": 0.0,
+      "lissage": false,
+      "derapage": false,
+      "timeOut": 0,
+      "action": "null",
+      "attAction": false
+    },
+    {
+      "commentaire": "",
+      "type": "Angle",
+      "angle": 90,
+      "deltaAngle": 0.1,
+      "vitesse": 700,
+      "blocage": "aucun",
+      "timeOut": 0,
+      "action": "asserv",
+      "attAction": true
+    }
+  ]
+}

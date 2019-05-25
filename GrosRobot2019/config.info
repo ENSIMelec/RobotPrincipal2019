@@ -49,10 +49,13 @@ asservissement {
 	;pid_kia 0.08
 	;pid_kda 45
 
-	pid_kpa 25
-	pid_kia 0.06
-	pid_kda 45
+	;pid_kpa 25
+	;pid_kia 0.06
+	;pid_kda 45
 
+	pid_kpa 40
+	pid_kia 0
+	pid_kda 7
 	
 	;pid d'angle en déplacement
 	;pid_kpdep 11
@@ -64,14 +67,13 @@ asservissement {
 	;pid_kidep 		0.8
 	;pid_kddep 		10
 
+	;pas mal
 	pid_kpdep 		20
-	pid_kidep 		0
-	pid_kddep 		5
+	pid_kidep 		0.1
+	pid_kddep 		50
+
 
 	; pid de position
-	;pid_kppos 0.004
-	;pid_kipos 0
-	;pid_kdpos 0
 	pid_kppos 		2
 	pid_kipos 		0
 	pid_kdpos 		1
@@ -94,20 +96,32 @@ asservissement {
 
 	; Réglages coefs déplacement
 
-	CoeffGLong 0.2192765113974
-	CoeffDLong 0.2188427299703
+	;CoeffGLong 0.2192765113974
+	;CoeffDLong 0.2188427299703
+
+	;CoeffGLong 0.2204356846473029
+	;CoeffDLong 0.2209804419608839
+
+	;24/05/2019 initiaux
+	;CoeffGLong 0.2175127805414823
+	;CoeffDLong 0.2180503145536678
+	;CoeffGLong 0,2175127805414823
+	;CoeffDLong 0,2180503145536678
+
+	;trop
+	;CoeffGLong 0.2171502592405798
+	;CoeffDLong 0.2184137317445906
+
+	;calcule un sixieme
+	CoeffGLong 0.2174523603246652
+	CoeffDLong 0.2181108840854883
 	
-	
-
-
-
-
 	;CoefAngle Solveur
 	;CoeffAngl 0.0511967234097018
 	;CoeffAngl 0.0510457284650833
 
-	CoeffAnglD 0.0518381441850994
-	CoeffAnglG 0.0518739981486097
+	CoeffAnglD 0.0518380923726007
+	CoeffAnglG 0.0518358531317495
 
 	; Adresses cartes arduino
 	I2C_SERVOS 64

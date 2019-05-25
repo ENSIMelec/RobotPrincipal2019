@@ -7,9 +7,9 @@ using namespace rp::standalone::rplidar;
 #define PI 3.14159265
 
 
-#define MAX_SPEED 500
-#define AVG_SPEED 425
-#define LOW_SPEED 350
+#define MAX_SPEED 700
+#define AVG_SPEED 600
+#define LOW_SPEED 450
 
 // Angle de détection de 80°
 #define ANGLE_ROBALLS 95

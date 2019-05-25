@@ -10,11 +10,11 @@
     {
       "commentaire": "",
       "type": "Deplacement",
-      "X": 2100,
+      "X": 2750,
       "Y": 1000,
-      "deltaDeplacement": 10,
+      "deltaDeplacement": 30,
       "deltaAngle": 10.0,
-      "vitesse": 1200,
+      "vitesse": 700,
       "sens": "avant",
       "blocage": "aucun",
       "coefCourbe": 0.0,
@@ -23,6 +23,17 @@
       "timeOut": 0,
       "action": "null",
       "attAction": false
+    },
+    {
+      "commentaire": "",
+      "type": "Angle",
+      "angle": 90,
+      "deltaAngle": 1.0,
+      "vitesse": 700,
+      "blocage": "aucun",
+      "timeOut": 0,
+      "action": "asserv",
+      "attAction": true
     }
   ]
 }

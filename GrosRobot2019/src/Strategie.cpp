@@ -178,7 +178,6 @@ Point Strategie::getPointSuivant() {
         //PATHFINDING ICI
 
         if(indexItineraire == 0){
-            objectifAatteindre = getPointActuel();
             cout << "departPathfinding : " << departPathfinding->getId() << " | objectif : " << maTable->graph.noeudLePlusProche(createNodeByPoint(objectifAatteindre))->getId();
             currentItineraire = trouverCheminVersObjectif(departPathfinding->getId(), maTable->graph.noeudLePlusProche(createNodeByPoint(objectifAatteindre))->getId()); // point de départ à changer -> reculer dans le main au noeud le plus proche puis refaire un itinéraire à partir de là             
             convertNoeudsIntoPoints();
@@ -473,27 +472,27 @@ void Strategie::convertNoeudsIntoPoints(){
     cheminVersPoint = std::vector<Point>(currentItineraire.size());
     Point point;
     for(int i = 0; i<currentItineraire.size(); i++){
-        cout << "i : " << i << endl;
+        //cout << "i : " << i << endl;
         if(i ==0 )
         {
-            point = Point("Deplacement", currentItineraire[i]->getX(), currentItineraire[i]->getY(), 0, 50, 1.0, 200, "avant", "avant", 1.0, false, false, 0, "null", false);
+            point = Point("Deplacement", currentItineraire[i]->getX(), currentItineraire[i]->getY(), 0, 20, 1.0, 200, "avant", "avant", 1.0, false, false, 0, "null", false);
 
         }
         else if(i == 1)
         {
-            point = Point("Deplacement", currentItineraire[i]->getX(), currentItineraire[i]->getY(), 0, 50, 1.0, 300, "avant", "avant", 1.0, false, false, 0, "null", false);            
+            point = Point("Deplacement", currentItineraire[i]->getX(), currentItineraire[i]->getY(), 0, 20, 1.0, 300, "avant", "avant", 1.0, false, false, 0, "null", false);            
         }
         else{
-            point = Point("Deplacement", currentItineraire[i]->getX(), currentItineraire[i]->getY(), 0, 50, 1.0, 400, "avant", "avant", 1.0, false, false, 0, "null", false);
+            point = Point("Deplacement", currentItineraire[i]->getX(), currentItineraire[i]->getY(), 0, 20, 1.0, 300, "avant", "avant", 1.0, false, false, 0, "null", false);
         }
         cheminVersPoint[i] = point;
 
-        cout << "i : " << i << endl;        
+        //cout << "i : " << i << endl;        
     }
 }
 
 Point Strategie::convertNodeIntoPoint(Noeud* nodeToConvert){
-    Point pointConverti = Point("Deplacement", nodeToConvert->getX(), nodeToConvert->getY(), 0, 50, 1.0, 200, "avant", "aucun", 1.0, false, false, 0, "null", false);
+    Point pointConverti = Point("Deplacement", nodeToConvert->getX(), nodeToConvert->getY(), 0, 20, 1.0, 300, "avant", "aucun", 1.0, false, false, 0, "null", false);
     return pointConverti;
 }
      
@@ -508,12 +507,12 @@ void Strategie::drawCurrentPath(){
 void Strategie::blockNodes(Noeud* centralPoint){
     for(unsigned int i = 0; i < maTable->graph.getMapping().size(); i++){
         //if(((maTable->graph.getMapping()[i]->getX() >= (centralPoint->getX() - 300)) && (maTable->graph.getMapping()[i]->getX() <= (centralPoint->getX() + 300))) && ((maTable->graph.getMapping()[i]->getY() >= (centralPoint->getY() - 300)) && ((maTable->graph.getMapping()[i]->getY() <= (centralPoint->getY() + 300))))){
-        if((int)maTable->graph.getMapping()[i]->CalculerWeight(centralPoint) <= 400){
-            cout << "Le noeud n°" << i << " passe à faux !" << endl;
+        if((int)maTable->graph.getMapping()[i]->CalculerWeight(centralPoint) <= 500){
+            cout << "Le noeud n°" << i << " en X: " << maTable->graph.getMapping()[i]->getX() << ", Y: " << maTable->graph.getMapping()[i]->getY() << " passe à faux !" << endl;
             maTable->getMap().BloquerNoeud(i);
         }
     }
-    cout <<"Tous les noeuds sont bloques" <<endl;
+    //cout <<"Tous les noeuds sont bloques" <<endl;
 }
 
 Graphe* Strategie::getMaTable(){

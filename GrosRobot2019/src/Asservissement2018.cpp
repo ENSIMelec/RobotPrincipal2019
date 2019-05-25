@@ -145,8 +145,9 @@ void Asservissement2018::odometrie(){
 	y = y + dY;
 
 	//Calcul de l'angle réalisé
-	mesure_angle = CoeffAnglG*comptG-CoeffAnglD*comptD;
-	angle = angle + mesure_angle;
+	//mesure_angle = CoeffAnglG*comptG-CoeffAnglD*comptD;
+	mesure_angle = CoeffGLong*comptG-CoeffDLong*comptD;
+	angle = angle + atan(mesure_angle/240)*180/M_PI; ///////////////////////////////////////////////
 
 	if(angle<-180){
 		angle=angle+360;
@@ -271,7 +272,7 @@ void Asservissement2018::Deplacement(){
 			cout<<"### Rotation de "<<consigne_angle << " ###"<<endl;
 
 			//Calcul des commandes moteurs pour la rotation (cmdG, cmdD);
-			asservAngle(500);
+			asservAngle(pointActuel.getVitesse());/////////////////////////////////////////////////////avant c'etait asservAngle(500)
 
 			//Calcul de la pente d'acceleration
 			if( coefAccel <1){
@@ -299,6 +300,8 @@ void Asservissement2018::Deplacement(){
 			consigneG=1;
 			consigneD=1;
 		}
+		/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+		//Chelou ? par rapport au if/else juste au dessus
 		correctionAngle();
 		cout <<"Correction d'angle : "<< consigneG <<", "<<consigneD<<endl;
 
@@ -533,7 +536,7 @@ void Asservissement2018::asservVitesse(double vitConsigneG, double vitConsigneD)
 		if((abs(cmdG) >= 150 && abs(vitG)<=5) || (abs(cmdD)>= 150 && abs(vitD)<=5)){
 			//Dérapage imprévu
 			cout<< "\t ####### Robot bloqué #######"<<endl;
-			moteurBloque = true;
+			//moteurBloque = true;
 			//moteurs.stop();
 			//exit(3);
 		}else{

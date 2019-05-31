@@ -46,6 +46,8 @@ string PATH = "/home/pi/GrosRobot2019/";
 bool argc_control(int argc);
 bool argv_contains_dummy(int argc, char** argv);
 
+void electronThreadFunc(bool& confirm, ClientUDP& client);
+void experienceThreadFunc(bool& confirm, ClientUDP& client);
 int communicationAvecKiroulpaThread(bool& robotConnecte, ClientUDP& client);
 void actionThreadFunc(ActionManager& ACTION, string filename, bool& actionEnCours, bool& actionDone);
 
@@ -62,11 +64,14 @@ Lidar* lid;
 bool relancer = false;
 
 void lidar(Lidar *lidar){
+		cout  << " ********************************************** ENTREE DANS SCAN ********************************************** " << endl;
 		lidar->Scan();
+		cout << " ********************************************** SORTIE DE SCAN ********************************************** " << endl;
 		cout<<"thread Lidar"<<endl;
+		relancer = true;
 }
 
-void electronThreadFunc(bool &confirm){
+void electronThreadFunc(bool &confirm, ClientUDP& client){
 	int sockfd = socket(AF_INET,SOCK_DGRAM,IPPROTO_UDP);
 	struct sockaddr_in electron;
 	electron.sin_family = AF_INET;
@@ -78,6 +83,7 @@ void electronThreadFunc(bool &confirm){
 
     socklen_t addr = sizeof(electron);
 
+	
     int lancement = sendto(sockfd, connexion.c_str(), connexion.size()+1, 0,(struct sockaddr *)&electron, addr);
 	if(lancement <= 0){
 		cout << "ERREUR LORS DE L'ENVOI" << endl;
@@ -85,7 +91,7 @@ void electronThreadFunc(bool &confirm){
 		cout << "Envoi réussi" << endl; 
 	}
 
-	/*Réception de la confirmation*/
+	//Réception de la confirmation
 	int retour_deb =  recvfrom(sockfd, paquetRecu, 25, 0, (struct sockaddr *)&electron, &addr);
 	if(retour_deb <= 0){
 		cout << "Erreur lors de la réception" << endl;
@@ -94,13 +100,12 @@ void electronThreadFunc(bool &confirm){
 		cout << "Message recu : " << paquetRecu << endl;
 	}
 
-	while(strcmp(paquetRecu, "Reussie") != 0){
-		sendto(sockfd, str_deb.c_str(), str_deb.size()+1, 0,(struct sockaddr *)&electron, addr);
+	/*while(strcmp(paquetRecu, "Reussie") != 0){
+		sendto(sockfd, connexion.c_str(), connexion.size()+1, 0,(struct sockaddr *)&electron, addr);
 		recvfrom(sockfd, paquetRecu, 25, 0, (struct sockaddr *)&electron, &addr);
-	}
+	}*/
 
 	confirm = true;
-
 
 	while(InitRobot::jackIsPresent()) {
 		sleepMillis(1);
@@ -128,9 +133,11 @@ void electronThreadFunc(bool &confirm){
 		sendto(sockfd, str_deb.c_str(), str_deb.size()+1, 0,(struct sockaddr *)&electron, addr);
 		recvfrom(sockfd, paquetRecu, 25, 0, (struct sockaddr *)&electron, &addr);
 	}
+
+	//client.addPoints(20, 100);
 }
 
-void experienceThreadFunc(bool &confirm) {
+void experienceThreadFunc(bool &confirm, ClientUDP& client) {
 	/*Déclaration de variables pour recevoir les datagrammes*/
 	int sockfd = socket(AF_INET,SOCK_DGRAM,IPPROTO_UDP);
 	struct sockaddr_in experience;
@@ -140,7 +147,7 @@ void experienceThreadFunc(bool &confirm) {
     char * paquetRecu;
     string str = "On";
     string connexion = "Connexion";
-
+    
 	int envoi = sendto(sockfd, connexion.c_str(), connexion.size()+1, 0,(struct sockaddr *)&experience, sizeof(experience));
 	if(envoi <= 0){
 		cout << "ERREUR LORS DE L'ENVOI" << endl;
@@ -148,7 +155,7 @@ void experienceThreadFunc(bool &confirm) {
 		cout << "Envoi réussi" << endl; 
 	}
 
-	/*Réception de la confirmation*/
+	//Réception de la confirmation*/
 	socklen_t addr = sizeof(experience);
 	int retour =  recvfrom(sockfd, paquetRecu, 25, 0, (struct sockaddr *)&experience, &addr);
 	if(retour <= 0){
@@ -158,19 +165,23 @@ void experienceThreadFunc(bool &confirm) {
 		cout << "Message recu : " << paquetRecu << endl;
 	}
 
-	while(strcmp(paquetRecu, "Reussie") != 0){
-		sendto(sockfd, str.c_str(), str.size()+1, 0,(struct sockaddr *)&experience, sizeof(experience));
+	/*while(strcmp(paquetRecu, "Reussie") != 0){
+		sendto(sockfd, connexion.c_str(), connexion.size()+1, 0,(struct sockaddr *)&experience, sizeof(experience));
 		recvfrom(sockfd, paquetRecu, 25, 0, (struct sockaddr *)&experience, &addr);
-	}
+	}*/
 
 	confirm = true;
 	paquetRecu = "";
 
+	cout << "[EXPERIENCE] Attente du jack" << endl;
 	while(InitRobot::jackIsPresent()) {
 		sleepMillis(1);
+
+		cout << "Attente Expérience " << endl;
 	}
+	cout << "[EXPERIENCE] Fin d'attente" << endl;
 
-
+	
 	envoi = sendto(sockfd, str.c_str(), str.size()+1, 0,(struct sockaddr *)&experience, sizeof(experience));
 	if(envoi <= 0){
 		cout << "ERREUR LORS DE L'ENVOI" << endl;
@@ -191,6 +202,8 @@ void experienceThreadFunc(bool &confirm) {
 		sendto(sockfd, str.c_str(), str.size()+1, 0,(struct sockaddr *)&experience, sizeof(experience));
 		recvfrom(sockfd, paquetRecu, 25, 0, (struct sockaddr *)&experience, &addr);
 	}
+
+	//client.addPoints(15, 100);
 }
 
 int communicationAvecKiroulpaThread(bool& robotConnecte, ClientUDP& client) {
@@ -232,11 +245,11 @@ int communicationAvecKiroulpaThread(bool& robotConnecte, ClientUDP& client) {
 	        cout << endl << endl << endl << "************************************ Recu : " << buff << "************************************" << endl << endl << endl;
 			if(buff[0] == 'B'){
 				confirmeBalance = true;
-				client.addPoints(24, 100);
+				client.addPoints(26, 80);
 			}
 			else if(buff[0] == 'A'){
 				confirmeAccelerateur = true;
-				client.addPoints(30, 100);
+				client.addPoints(18, 75);
 			}
 			else if(buff[0] == 'O'){
 				robotConnecte = true;
@@ -329,24 +342,32 @@ int main(int argc, char **argv) {
 	lid = new Lidar();	
 	cout<<"lid init"<<endl;
 
+	thread lidarThread1(lidar,lid);
+	cout<<"thread1 init"<<endl;
+
+	sleepMillis(100);
+	thread lidarThread2;
+	
+
 	bool electronLance = false;
 	bool experienceLancee = false;
 	bool robotConnecte = false;
-	InitRobot init_robot(&electronLance, &experienceLancee, &robotConnecte);
-	thread (electronThreadFunc, ref(electronLance)).detach();
+	//InitRobot init_robot(&electronLance, &experienceLancee, &robotConnecte);
+	
+	InitRobot init_robot;
 
-
+	
 	bool waitForDevicesConnections = 0;
 	waitForDevicesConnections = config.get_WAIT_DEVICES_CONNECTIONS();
 	if(waitForDevicesConnections) {
 		//Lancement des threads pour l'électron et l'expérience et le deuxième robot
-		thread (electronThreadFunc, ref(electronLance)).detach();
-		thread (experienceThreadFunc, ref(experienceLancee)).detach();
+		thread (electronThreadFunc, ref(electronLance), ref(client)).detach();
+		thread (experienceThreadFunc, ref(experienceLancee), ref(client)).detach();
 		thread (communicationAvecKiroulpaThread, ref(robotConnecte), ref(client)).detach();
 
 		sleepMillis(1000);
-		if(experienceLancee){
-			cout << "Experience connectée" << endl;
+		if(electronLance){
+			cout << "Electron connecté" << endl;
 		}
 		else {
 			cout << "Echec de connexion" << endl;
@@ -359,20 +380,25 @@ int main(int argc, char **argv) {
 			}
 		}
 	}
-
 	//Attente d'initialisation du robot: jack, aru, electron, experience
-	init_robot.waitForRobotInitialisation(waitForDevicesConnections); //true => on attend que l'electron et l'expérience soient connectés
+	init_robot.waitForRobotInitialisation(0); //true => on attend que l'electron et l'expérience soient connectés
+		
+	temps.restart();
 
 	cout << "Depart du robot" << endl;
 	codeurs.reset();
 	codeurs.reset();
 	cout <<"Codeur reset"<<endl;
 	nbAppelsAsserv = 0;
-	
-	
+
 	jouerMatch(ref(asserv), ref(strat), p_moteurs, ref(actions), ref(temps), ref(client));
 
 	delete lid;
+
+	asserv.stop();
+ 	sleepMillis(100); //Permet de laisser le temps de demander l'arrêt des moteurs :)
+	asserv.stop();
+	sleepMillis(100);
 
 	if(forcing_stop) {
 		cout << "Forcing stop" << endl;
@@ -418,6 +444,8 @@ void actionThreadFunc(ActionManager& ACTION, string filename, bool& actionEnCour
 
 
 void jouerMatch(Asservissement2018& asserv, Strategie& strat, MoteurManager *p_moteurs, ActionManager& actions, timer& temps, ClientUDP& client) {
+	client.addPoints(40, 100);
+
 	BlocageManager blocage(lid); //Gestionnaire de blocage
 	timer tempsBlocage, asservTimer, timeOut;
 	bool weAreBlocked = false; //Est ce qu'on bloque ?
@@ -425,6 +453,11 @@ void jouerMatch(Asservissement2018& asserv, Strategie& strat, MoteurManager *p_m
 	//Saute le point d'initialisation
 	nbActionFileExecuted = 0;
 
+	PositionBlocage posBloc;
+	PositionBlocage oldPosBloc = PositionBlocage::AUCUN;
+	int XNodeToBlock, YNodeToBlock;
+
+	temps.restart();
 	timeOut.restart();
 
 	while(!forcing_stop && strat.isNotFinished() && temps.elapsed_s() < temps_match && InitRobot::aruIsNotPush()) {
@@ -440,67 +473,65 @@ void jouerMatch(Asservissement2018& asserv, Strategie& strat, MoteurManager *p_m
 				cout << endl << endl << "************************* WeAreBlocked *************************" <<endl << endl;
 
 				//Blocage des noeuds autour de celui qu'on détecte
-				int XNodeToBlock, YNodeToBlock;
-				lid->cartesianFromLidar(&XNodeToBlock, &YNodeToBlock);
-				cout << "Point bloqué avant transformation en absolu : " << XNodeToBlock << " ; " << YNodeToBlock << endl;
+				strat.getMaTable()->getMap().debloquerTousLesNoeuds(); 
+				Noeud nodeToBlock(false, new Coordonnee(XNodeToBlock, YNodeToBlock), strat.getMaTable()->getMap().getMapping().size());
+				strat.blockNodes(&nodeToBlock);
 
-				asserv.PositionAbs(XNodeToBlock, YNodeToBlock, &XNodeToBlock, &YNodeToBlock);
-				cout << "Point bloqué après transformation en absolu : " << XNodeToBlock << " ; " << YNodeToBlock << endl;
+				//On se prépare à reculer vers le noeud le plus proche de l'endroit de la table où on se trouve
+				strat.setObjectifAatteindre(strat.getPointActuel());
+				Noeud* currentNode = strat.createNodeByPoint(asserv.getCoordonnees());
+				Noeud* noeudPlusProche = strat.getMaTable()->graph.noeudLePlusProche(currentNode);
+				cout << "Noeud le plus proche trouvé : " << noeudPlusProche->getId() << endl;
+				Point pointRecul = strat.convertNodeIntoPoint(noeudPlusProche);
+				cout << "On recule vers X: "<< pointRecul.getX() << ", Y: " << pointRecul.getY() << endl;
 
-				//if(Point::isOnTable(XNodeToBlock, YNodeToBlock)){
-					strat.getMaTable()->getMap().debloquerTousLesNoeuds(); 
-					Noeud nodeToBlock(false, new Coordonnee(XNodeToBlock, YNodeToBlock), strat.getMaTable()->getMap().getMapping().size());
-					strat.blockNodes(&nodeToBlock);
+				pointRecul.setSens(1);
+				pointRecul.setVitesse(150);
+				asserv.pointSuivant(pointRecul);
 
-					//On se prépare à reculer vers le noeud le plus proche de l'endroit de la table où on se trouve
-					strat.setObjectifAatteindre(strat.getPointActuel());
-					Noeud* currentNode = strat.createNodeByPoint(asserv.getCoordonnees());
-					Noeud* noeudPlusProche = strat.getMaTable()->graph.noeudLePlusProche(currentNode);
-					cout << "Noeud le plus proche trouvé : " << noeudPlusProche->getId() << endl;
-					Point pointRecul = strat.convertNodeIntoPoint(noeudPlusProche);
-					cout << "On recule vers X: "<< pointRecul.getX() << ", Y: " << pointRecul.getY() << endl;
-
-					pointRecul.setSens(1);
-					pointRecul.setVitesse(150);
-					asserv.pointSuivant(pointRecul);
-
-					// Préparation pour le pathfinding
-					strat.setPathfindingInAction(true);
-					strat.setDepartPathfinding(pointRecul);
-					lid->detectionArriere = true;
-
-				//}
+				// Préparation pour le pathfinding
+				strat.setPathfindingInAction(true);
+				strat.setDepartPathfinding(pointRecul);
+				lid->detectionArriere = true;
 				
 			}else{
 				asserv.pointSuivant(strat.getPointSuivant()); // On demande le point suivant à la strategie (elle met à jour le point actuel/courant), et on le donne à l'asservissement
-				//Gestion des capteurs
-				if(asserv.getPointActuel().getDetection() == 1){			
-					lid->detectionAvant = true;
-					lid->detectionArriere = false;
-				}
-				else if(asserv.getPointActuel().getDetection() == 2){
-					lid->detectionAvant = false;
-					lid->detectionArriere = true;
-				}
-				else{
-					lid->detectionAvant = false;
-					lid->detectionArriere = false;
-				}
+				cout << "Détection ? " << strat.getPointActuel().getDetection() << endl;
 			}
 
+			asserv.setPathfindingInAction(strat.getPathfindingInAction());
+
+			
 
 			strat.setStatut("null");
 			weAreBlocked = false; //On est plus bloqué, on vient de changer de point
 			timeOut.restart();
+			
 			if(((strat.getFileAction()).compare("null") != 0) && ((strat.getFileAction()).compare("") != 0)) { //Si il y a un fileAction
 				thereIsAnAction = true;
 				actionDone = false;
 			} else {
 				thereIsAnAction = false;
-				actionDone = true; //Permet de sécurisé le fait que si le point demande la fin de l'action, et qu'il n'y a pas d'action à lancer (null), alors l'action est marquée comme "faite"
+				actionDone = true; //Permet de sécuriser le fait que si le point demande la fin de l'action, et qu'il n'y a pas d'action à lancer (null), alors l'action est marquée comme "faite"
 			}
 			actionEnCours = false;
 		}
+
+		//Gestion des capteurs
+			if(asserv.getPointActuel().getDetection() == 1){			
+				lid->detectionAvant = true;
+				lid->detectionArriere = false;
+			}
+			else if(asserv.getPointActuel().getDetection() == 2){
+				lid->detectionAvant = false;
+				lid->detectionArriere = true;
+			}
+			else{
+				lid->detectionAvant = false;
+				lid->detectionArriere = false;
+			}
+			//cout << "On détecte à l'avant ? " << lid->detectionAvant << " ou à l'arrière ? " << lid->detectionArriere << endl;
+
 		//cout<<"Time: "<<asservTimer.elapsed_s()<<"delta: "<<deltaAsservTimer<<endl;
 		if(asservTimer.elapsed_ms() >= deltaAsservTimer) {
 			asserv.asservir(); //Asservit les moteurs pour se déplacer au point demandé
@@ -510,43 +541,67 @@ void jouerMatch(Asservissement2018& asserv, Strategie& strat, MoteurManager *p_m
 		}
 
 		//Gestion des blocages moteurs
-		if(asserv.blocageMoteur() == true) {
+		if(asserv.blocageMoteur()) {
 			p_moteurs->stop();
 			asserv.pointSuivant(strat.getPointActuel());
 			//Donne à l'asserv un pour pour s'éloigner du blocage en fonction des coordonnées du robot
 			//asserv.pointSuivant(strat.eloigner(asserv.getCoordonnees(), 200)); //On demande à l'asserv de l'éloigner de 200mm du point actuel
 		}
 
-		//cout << "Pallier : " << lid->speed << endl;
 		switch(lid->speed){
 			case 1: asserv.setVitessePointActuel(166); break;
 			case 2: asserv.setVitessePointActuel(333); break;
 			case 3: asserv.setVitessePointActuel(strat.getPointActuel().getVitesse()); break;
 			default: asserv.setVitessePointActuel(strat.getPointActuel().getVitesse()); break;
 		}
-		//cout << "La vitesse d'arrivée au point = " << asserv.getPointActuel().getVitesse() << endl;
+
+		tempsBlocage.restart();
 
 
-		tempsBlocage.restart(); //On compte le temps passé bloqué
-
-		
-		while(lid->speed == 0 && tempsBlocage.elapsed_ms() < 1000 && InitRobot::aruIsNotPush() && temps.elapsed_s() < temps_match) {
-			//Si on rencontre un obstacle genant
-			//On attend pendant 3 secondes, tant qu'on est bloqué par un obstacle genant
-			p_moteurs->stop(); // On recule ou pas ??
+		while(lid->speed == 0 && tempsBlocage.elapsed_ms() < 10000 && InitRobot::aruIsNotPush() && temps.elapsed_s() < temps_match) {
+			//Si on rencontre un obstacle genant, on s'arrête
+			p_moteurs->stop();
 		}
+
+		tempsBlocage.restart(); //On reset le temps passé bloqué
 
 		p_moteurs->dummyBlocage = false; //On débloque les moteurs
 		//Maintenant, soit le temps est dépassé (et donc il y a techniquement encore l'obstacle), soit le temps n'est pas dépassé (et donc il n'y a plus d'obstacle)
-		//posBloc = blocage.isBlocked();
-		//cout << "Vitesse après analyse Lidar : " << asserv.getPointActuel().getVitesse() << endl;
 		if(lid->speed == 0 && InitRobot::aruIsNotPush() && temps.elapsed_s() < temps_match) { //Si il y a encore un obstacle genant
 			p_moteurs->stop(); //On arrête les moteurs (au final, on a fait, si besoin, un petit déplacement en 1 seconde)
-			strat.setStatut("Bloque");
+			//strat.setStatut("Bloque");
 			cout <<endl << endl << "************************* LIDAR DETECTION *************************" <<endl << endl;
 
-			weAreBlocked = true; //On doit changer de point, sachant qu'on dit à la strat qu'on est bloqué -> On va changer d'objectif
+			//weAreBlocked = true; //On doit changer de point, sachant qu'on dit à la strat qu'on est bloqué -> On va pathfind
 		}
+
+		/*if(lid->speed == 0){
+			lid->cartesianFromLidar(&XNodeToBlock, &YNodeToBlock);
+			cout << "Point bloqué coordonnées relatives : " << XNodeToBlock << " ; " << YNodeToBlock << endl;
+
+			asserv.PositionAbs(XNodeToBlock, YNodeToBlock, &XNodeToBlock, &YNodeToBlock);
+			cout << "Point bloqué coordonnées absolues : " << XNodeToBlock << " ; " << YNodeToBlock << endl;
+
+			if(Point::isOnTable(XNodeToBlock, YNodeToBlock)){
+				while(lid->speed == 0 && tempsBlocage.elapsed_ms() < 100000 && InitRobot::aruIsNotPush() && temps.elapsed_s() < temps_match) {
+					//Si on rencontre un obstacle genant, on s'arrête
+					p_moteurs->stop();
+				}
+
+				tempsBlocage.restart(); //On reset le temps passé bloqué
+
+				p_moteurs->dummyBlocage = false; //On débloque les moteurs
+				//Maintenant, soit le temps est dépassé (et donc il y a techniquement encore l'obstacle), soit le temps n'est pas dépassé (et donc il n'y a plus d'obstacle)
+				if(lid->speed == 0 && InitRobot::aruIsNotPush() && temps.elapsed_s() < temps_match) { //Si il y a encore un obstacle genant
+					p_moteurs->stop(); //On arrête les moteurs (au final, on a fait, si besoin, un petit déplacement en 1 seconde)
+					//strat.setStatut("Bloque");
+					cout <<endl << endl << "************************* LIDAR DETECTION *************************" <<endl << endl;
+
+					//weAreBlocked = true; //On doit changer de point, sachant qu'on dit à la strat qu'on est bloqué -> On va pathfind
+				}
+			}			
+		}*/
+				
 
 		//Gestion des actions
 		if(thereIsAnAction && !actionDone && !actionEnCours && strat.isNotFinished() && InitRobot::aruIsNotPush() && temps.elapsed_s() < temps_match) { //Si on a une action a faire et qu'elle n'est pas faite et qu'elle n'est pas en cours
@@ -599,4 +654,22 @@ void stopSignal(int signal) {
 
 void sleepMillis(int millis) {
 	std::this_thread::sleep_for(std::chrono::milliseconds(millis));
+}
+
+bool recontreObstacle(Strategie& strat, PositionBlocage posBloc) {
+	int sensDeplacement = strat.getSensDeplacement();
+	int optionBlocage = strat.getOptionDetection();
+
+	if( (sensDeplacement == 0 && optionBlocage == 1 && (posBloc == PositionBlocage::AVANT)) ||
+		(sensDeplacement == 1 && optionBlocage == 2 && (posBloc == PositionBlocage::ARRIERE)) ||
+		(optionBlocage == 3 && posBloc != PositionBlocage::AUCUN))
+	{
+		return true;
+	} else { //Si on est pas gené par un obstacle
+		return false;
+	}
+}
+
+bool ARUisNotPush() {
+	return digitalRead(PIN_ARU) == 1;
 }

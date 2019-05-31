@@ -68,6 +68,9 @@ public:
 
     void PositionAbs(int, int, int*, int*);
 
+    void setPathfindingInAction(bool);
+    bool getPathfindingInAction();
+
 private:
 
     void odometrie();
@@ -144,7 +147,7 @@ private:
     //Coefs PID en angle
     double kpA, kiA, kdA;
     //Coefs PID en angle en déplacement
-    double kpDep, kiDep, kdDep;
+    double kpDep, kiDep, kdDep, kpDepPathfinding;
     //Coefs PID en position
     double kpPos, kiPos, kdPos;
 
@@ -175,7 +178,12 @@ private:
     double ticksG=0;
     double  ticksD=0;
 
+    // Détection dérapage
+    bool derapageG;
+    bool derapageD;
 
+    //
+    bool pathfindingInAction;
 
 };
 

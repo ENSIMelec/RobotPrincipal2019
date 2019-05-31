@@ -3,20 +3,20 @@
     {
       "commentaire": "",
       "type": "RecalageXY",
-      "X": 0,
-      "Y": 1000,
-      "angle": 90
+      "X": 1370,
+      "Y": 1050,
+      "angle": -90
     },
     {
       "commentaire": "",
       "type": "Deplacement",
-      "X": 900,
-      "Y": 1000,
+      "X": -500,
+      "Y": 1050,
       "deltaDeplacement": 30,
       "deltaAngle": 1.0,
       "vitesse": 700,
       "sens": "avant",
-      "blocage": "aucun",
+      "blocage": "avant",
       "coefCourbe": 0.0,
       "lissage": false,
       "derapage": false,
@@ -32,7 +32,7 @@
       "vitesse": 700,
       "blocage": "aucun",
       "timeOut": 0,
-      "action": "asserv",
+      "action": "null",
       "attAction": true
     }
   ]

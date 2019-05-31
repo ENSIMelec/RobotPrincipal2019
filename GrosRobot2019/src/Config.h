@@ -28,6 +28,7 @@ public:
 	double getPIDkiA() const;
 	double getPIDkdA() const;
 
+	double getPIDkpDepPathfinding() const;
 	double getPIDkpDep() const;
 	double getPIDkiDep() const;
 	double getPIDkdDep() const;
@@ -70,7 +71,7 @@ private:
 	std::string ipServeur;
 	int port;
 
-	double pid_kpDep, pid_kiDep, pid_kdDep;
+	double pid_kpdepPathFinding, pid_kpDep, pid_kiDep, pid_kdDep;
 	double pid_kiPos,pid_kpPos, pid_kdPos;
 	double pid_kpA, pid_kiA, pid_kdA;
 	double pid_kpV_low, pid_kiV_low, pid_kdV_low, pid_kpV_medium, pid_kiV_medium, pid_kdV_medium, pid_kpV_high, pid_kiV_high, pid_kdV_high;

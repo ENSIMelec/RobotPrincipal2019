@@ -12,7 +12,7 @@ using namespace rp::standalone::rplidar;
 #define LOW_SPEED 450
 
 // Angle de détection de 80°
-#define ANGLE_ROBALLS 95
+#define ANGLE_ROBALLS 90
 
 // Angle de détection de 95°
 #define ANGLE_MILHABOT 95
@@ -158,7 +158,7 @@ int Lidar::Scan()
 			drv->ascendScanData(nodes, count);	
 			for (int pos = 1; pos < (int)count ; ++pos) 
     		{				
-            	if(distance_min > nodes[pos].distance_q2/4.0 && nodes[pos].distance_q2/4.0 != 0.0){
+            	if(distance_min * cos(nodes[pos].angle_q6_checkbit/128.0f / 180 * PI) > nodes[pos].distance_q2/4.0 && nodes[pos].distance_q2/4.0 != 0.0){
             		distance_min = nodes[pos].distance_q2/4.0;
             		distance = distance_min;
             		angle = nodes[pos].angle_q6_checkbit/128.0f;
@@ -183,10 +183,10 @@ int Lidar::Scan()
     	}
 
 		if(detectionActive){
-			if((angle < (ANGLE_ROBALLS / 2) || angle > (360 - ANGLE_ROBALLS / 2)) && detectionAvant){
+			if((angle < (ANGLE_MILHABOT / 2) || angle > (360 - ANGLE_MILHABOT / 2)) && detectionAvant){
                 speed = etat;
             }
-            else if(angle > (180 - ANGLE_ROBALLS / 2) && angle < (180 + ANGLE_ROBALLS / 2) && detectionArriere){
+            else if(angle > (180 - ANGLE_MILHABOT / 2) && angle < (180 + ANGLE_MILHABOT / 2) && detectionArriere){
                 speed = etat;
             }
             else{
@@ -205,6 +205,7 @@ int Lidar::Scan()
 
 void Lidar::cartesianFromLidar(int *x, int *y)
 {
-	*x = (int)(distance * cos(angle / 180.0 * PI));
-	*y = (int)(distance * sin(angle / 180.0 * PI));
+	cout << "Distance de l'obstacle : " << distance << endl;
+	*x = (int)(distance * sin(angle / 180.0 * PI));
+	*y = (int)(distance * cos(angle / 180.0 * PI));
 }

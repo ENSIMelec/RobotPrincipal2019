@@ -58,10 +58,10 @@ class Point
 	void display();
 
 	static bool isOnTable(int xPoint, int yPoint){
-		if(xPoint > 1400 || xPoint < -1400){
+		if(xPoint > 1400 || xPoint <= -1400){
 			return false;
 		}
-		if(yPoint > 1535 || yPoint < 100){
+		if(yPoint > 1535 || yPoint <= 200){
 			return false;
 		}
 		return true;

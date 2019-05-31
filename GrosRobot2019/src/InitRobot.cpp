@@ -73,8 +73,8 @@ void InitRobot::waitForRobotInitialisation(bool checkConnectedDevices) {
 
 	//Attente du jack et de l'arrêt d'urgence
 	cout << "Attente du jack" << endl;
-	while(jackIsPresent() == true) {
-		if(aruIsNotPush() == true) {
+	while(jackIsPresent()) {
+		if(aruIsNotPush()) {
 			ledInitOn();
 		} else {
 			//Blink normal -> Il faut enlever l'ARU

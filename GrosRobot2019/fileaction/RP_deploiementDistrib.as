@@ -4,9 +4,12 @@
 N 0 40 45 2000
 
 #ouverture des pinces
-A 2 180 240 0
-A 3 180 240 0
-A 4 180 240 0
+A 2 180 1023 0
+A 3 180 1023 0
+A 4 180 1023 0
 
 #déploiement des pinces
-A 1 392 100 0
+#A 1 405 1023 10000
+
+#déploiement des pinces
+A 1 385 1023 10000

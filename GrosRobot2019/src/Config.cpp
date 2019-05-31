@@ -22,6 +22,7 @@ void Config::loadFromFile(string filename)
 	pid_kiA = tree.get<double>("asservissement.pid_kia");
 	pid_kdA = tree.get<double>("asservissement.pid_kda");
 
+	pid_kpdepPathFinding = tree.get<double>("asservissement.pid_kpdepPathFinding");
 	pid_kpDep = tree.get<double>("asservissement.pid_kpdep");
 	pid_kiDep = tree.get<double>("asservissement.pid_kidep");
 	pid_kdDep = tree.get<double>("asservissement.pid_kddep");
@@ -72,6 +73,7 @@ double Config::getPIDkpA() const { return pid_kpA; }
 double Config::getPIDkiA() const { return pid_kiA; }
 double Config::getPIDkdA() const { return pid_kdA; }
 
+double Config::getPIDkpDepPathfinding() const { return pid_kpdepPathFinding; }
 double Config::getPIDkpDep() const { return pid_kpDep; }
 double Config::getPIDkiDep() const { return pid_kiDep; }
 double Config::getPIDkdDep() const { return pid_kdDep; }

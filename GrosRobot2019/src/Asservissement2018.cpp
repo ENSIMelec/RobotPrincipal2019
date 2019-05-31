@@ -25,6 +25,7 @@ codeurs(cods)
 	kiA = conf.getPIDkiA();
 	kdA = conf.getPIDkdA();
 
+	kpDepPathfinding = conf.getPIDkpDepPathfinding();
 	kpDep = conf.getPIDkpDep();
 	kiDep = conf.getPIDkiDep();
 	kdDep = conf.getPIDkdDep();
@@ -34,6 +35,11 @@ codeurs(cods)
 	kdPos = conf.getPIDkdPos();
 
 	config = conf;
+
+	derapageG = false;
+	derapageD = false;
+
+	pathfindingInAction = false;
 }
 
 void Asservissement2018::initialiser(const Point& pt){
@@ -54,6 +60,8 @@ void Asservissement2018::initialiser(const Point& pt){
 	rotationDone = false;
 	asservFini = true;
 	asservFini = true;
+	derapageG = false;
+	derapageD = false;
 
 	//Reset des integrals des PIDs
 	somme_erreurAngle=0;
@@ -97,6 +105,9 @@ void Asservissement2018::pointSuivant(Point point){
 
 	asservFini = false;
 	rotationDone = false;
+
+	derapageG = false;
+	derapageD = false;
 
 	if(pointActuel.getType()==TypePoint::DEPLACEMENT_X){
 		yCible = y;
@@ -263,9 +274,16 @@ void Asservissement2018::Deplacement(){
 		}else{//Coefficient p par défaut
 			kpDep = config.getPIDkpDep();
 		}
+	}else {
+		kpDep = config.getPIDkpDep();
+	}
+
+	if(pathfindingInAction){
+		kpDep = config.getPIDkpDepPathfinding();
 	}else{
 		kpDep = config.getPIDkpDep();
 	}
+
 	if(rotationDone == false){//Si la rotation n'est pas terminée
 		//Rotation avant d'avancer
 		if(abs(erreurAngle)>pointActuel.getDeltaAngle()){//Erreur d'angle toléré
@@ -276,7 +294,7 @@ void Asservissement2018::Deplacement(){
 
 			//Calcul de la pente d'acceleration
 			if( coefAccel <1){
-				coefAccel += 0.1;
+				coefAccel += 0.06;
 				if(coefAccel>1){
 					coefAccel=1;
 				}
@@ -316,7 +334,7 @@ void Asservissement2018::Deplacement(){
 
 		//Calcul de la pente d'acceleration
 		if( coefAccel <1){
-			coefAccel += 0.075;
+			coefAccel += 0.05;
 			if(coefAccel>1){
 				coefAccel=1;
 			}
@@ -361,7 +379,7 @@ void Asservissement2018::Angle(){
 	asservAngle(pointActuel.getVitesse());
 	//Calcul de la pente d'acceleration
 	if( coefAccel <1){
-		coefAccel += 0.1;
+		coefAccel += 0.06;
 		if(coefAccel>1){
 			coefAccel=1;
 		}
@@ -515,7 +533,7 @@ void Asservissement2018::asservVitesse(double vitConsigneG, double vitConsigneD)
 	//cout <<"PID_G :"<< PID_G <<" PID_D :"<< PID_D << endl;
 	cmdG = PID_G;
 	cmdD = PID_D;
-
+/*
 	if(pointActuel.getDerapage()== true){//détection de dérapage
 		cout <<"Wait Burn, Gauche : "<< abs(cmdG) <<" vitG: "<<abs(vitG)<<" ,Droite: "<< abs(cmdD)<<" vitD: "<<abs(vitD)<<endl;
 		if(abs(cmdG)>=50 && abs(vitG)<5){
@@ -538,6 +556,37 @@ void Asservissement2018::asservVitesse(double vitConsigneG, double vitConsigneD)
 			cout<< "\t ####### Robot bloqué #######"<<endl;
 			//moteurBloque = true;
 			//moteurs.stop();
+			//exit(3);
+		}else{
+			moteurBloque = false;
+		}
+	}*/
+
+	if(pointActuel.getDerapage()== true){//détection de dérapage
+		cout <<"Wait Burn, Gauche : "<< abs(cmdG) <<" vitG: "<<abs(vitG)<<" ,Droite: "<< abs(cmdD)<<" vitD: "<<abs(vitD)<<endl;
+		if(abs(cmdG)>=50 && abs(vitG)<5){
+			cmdG = 0;
+			derapageG = true;
+			cout << "Dérapage Gauche" << endl;
+		}
+
+		if(abs(cmdD)>=50 && abs(vitD)<5){
+			cmdD = 0;
+			derapageD = true;
+			cout << "Dérapage Droite" << endl;
+		}
+
+		if(derapageD && derapageG){//Dérapage des deux cotés, on est contre la bordure, prêt pour le recalage
+			asservFini = true;
+		}
+	}else{
+		cout<< "PID vit "<< PID_G <<" "<< PID_D<<endl;
+		if((abs(cmdG) >= 85 && abs(vitG)<=5) || (abs(cmdD)>= 85 && abs(vitD)<=5) ){
+			//Dérapage imprévu
+			cout<< "\t ####### Robot bloqué #######"<<endl;
+			moteurBloque = true;
+			moteurs.stop();
+			pointSuivant(pointActuel);
 			//exit(3);
 		}else{
 			moteurBloque = false;
@@ -734,9 +783,23 @@ void Asservissement2018::setVitessePointActuel(int newVitesse){
 
 void Asservissement2018::PositionAbs(int xRelatif, int yRelatif, int *xAbso, int *yAbso)
 {
-	double teta = (angle - 90) / 180 * M_PI;
+	double teta;
+	if(x >= 0){
+		teta = (angle - 90) / 180 * M_PI;
+	}
+	else{
+		teta = (angle) / 180 * M_PI;
+	}
 	double cosTeta = cos(teta);
 	double sinTeta = sin(teta);
-	*xAbso = (int)(cosTeta * xRelatif + sinTeta * xRelatif + x);
-	*yAbso = (int)(- sinTeta * yRelatif + cosTeta * yRelatif + y);
+	*xAbso = (int)(cosTeta * xRelatif - sinTeta * yRelatif + x);
+	*yAbso = (int)(sinTeta * xRelatif + cosTeta * yRelatif + y);
+}
+
+bool Asservissement2018::getPathfindingInAction(){
+	return pathfindingInAction;
+}
+
+void Asservissement2018::setPathfindingInAction(bool newStatut){
+	pathfindingInAction = newStatut;
 }

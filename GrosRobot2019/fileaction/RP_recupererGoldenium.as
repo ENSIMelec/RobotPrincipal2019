@@ -2,16 +2,16 @@
 
 #Deploiement des pinces qui sert a la tempo
 A 2 250 1023 0
-A 4 250 1023 2000
+A 4 250 1023 1500
 
 #Descente du nema
-N 0 55 45 1500
+N 0 75 45 2000
 
 #Fermeture de la pince centrale
-A 3 245 1023 1000
+A 3 245 1023 1500
 
 #Remontee du nema
 N 0 120 45 1000
 
 #Ajout des points
-P 20 0 0 0
+P 20 66 0 0

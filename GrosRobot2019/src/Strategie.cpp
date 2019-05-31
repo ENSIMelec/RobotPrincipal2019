@@ -178,14 +178,16 @@ Point Strategie::getPointSuivant() {
         //PATHFINDING ICI
 
         if(indexItineraire == 0){
-            cout << "departPathfinding : " << departPathfinding->getId() << " | objectif : " << maTable->graph.noeudLePlusProche(createNodeByPoint(objectifAatteindre))->getId();
+            cout << " ***************************************************** departPathfinding : " << departPathfinding->getId() << " | objectif : " << maTable->graph.noeudLePlusProche(createNodeByPoint(objectifAatteindre))->getId();
             currentItineraire = trouverCheminVersObjectif(departPathfinding->getId(), maTable->graph.noeudLePlusProche(createNodeByPoint(objectifAatteindre))->getId()); // point de départ à changer -> reculer dans le main au noeud le plus proche puis refaire un itinéraire à partir de là             
+            
             convertNoeudsIntoPoints();
+            drawCurrentPath(maTable->graph.noeudLePlusProche(createNodeByPoint(objectifAatteindre))->getId());
 
-            cout << "Points convertis" << endl;
+            cout << " ***************************************************** Points convertis" << endl;
 
             if(!Graphe::cheminExistant(currentItineraire)){
-                cout << "Pas de chemin trouvé, on met une interruption" << endl;
+                cout << " ****************************************************** Pas de chemin trouvé, on met une interruption" << endl;
 
                 pushInteruption(); //ajout du point interrompu
                 do {
@@ -441,7 +443,7 @@ vector<Noeud*> Strategie::trouverCheminVersObjectif(int pointDepart, int destina
     //lesObjectifs[indexObjectif].setItineraire(itin);
 
     // Affichage de la liste sur une seule ligne, chaque item étant séparé par un espace
-    drawCurrentPath();
+    drawCurrentPath(destination);
 
     return itin;
 }
@@ -475,15 +477,15 @@ void Strategie::convertNoeudsIntoPoints(){
         //cout << "i : " << i << endl;
         if(i ==0 )
         {
-            point = Point("Deplacement", currentItineraire[i]->getX(), currentItineraire[i]->getY(), 0, 20, 1.0, 200, "avant", "avant", 1.0, false, false, 0, "null", false);
+            point = Point("Deplacement", currentItineraire[i]->getX(), currentItineraire[i]->getY(), 0, 50, 1.0, 700, "avant", "avant", 1.0, false, false, 0, "null", false);
 
         }
         else if(i == 1)
         {
-            point = Point("Deplacement", currentItineraire[i]->getX(), currentItineraire[i]->getY(), 0, 20, 1.0, 300, "avant", "avant", 1.0, false, false, 0, "null", false);            
+            point = Point("Deplacement", currentItineraire[i]->getX(), currentItineraire[i]->getY(), 0, 40, 1.0, 700, "avant", "avant", 1.0, false, false, 0, "null", false);            
         }
         else{
-            point = Point("Deplacement", currentItineraire[i]->getX(), currentItineraire[i]->getY(), 0, 20, 1.0, 300, "avant", "avant", 1.0, false, false, 0, "null", false);
+            point = Point("Deplacement", currentItineraire[i]->getX(), currentItineraire[i]->getY(), 0, 40, 1.0, 700, "avant", "avant", 1.0, false, false, 0, "null", false);
         }
         cheminVersPoint[i] = point;
 
@@ -492,14 +494,14 @@ void Strategie::convertNoeudsIntoPoints(){
 }
 
 Point Strategie::convertNodeIntoPoint(Noeud* nodeToConvert){
-    Point pointConverti = Point("Deplacement", nodeToConvert->getX(), nodeToConvert->getY(), 0, 20, 1.0, 300, "avant", "aucun", 1.0, false, false, 0, "null", false);
+    Point pointConverti = Point("Deplacement", nodeToConvert->getX(), nodeToConvert->getY(), 0, 40, 1.0, 200, "avant", "aucun", 1.0, false, false, 0, "null", false);
     return pointConverti;
 }
      
 
 
-void Strategie::drawCurrentPath(){
-    cout << "Chemin  vers " << getNoeudByPoint(getPointActuel())->id <<" : ";
+void Strategie::drawCurrentPath(int obj){
+    cout << "Chemin  vers " << obj <<" : ";
     copy(currentPath.begin(), currentPath.end(), ostream_iterator<int>(cout, " "));
     cout << endl;
 }

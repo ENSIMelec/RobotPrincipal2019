@@ -1,0 +1,39 @@
+{
+  "Points": [
+    {
+      "commentaire": "",
+      "type": "RecalageXY",
+      "X": 0,
+      "Y": 1000,
+      "angle": 90
+    },
+    {
+      "commentaire": "",
+      "type": "Deplacement",
+      "X": 2750,
+      "Y": 1000,
+      "deltaDeplacement": 30,
+      "deltaAngle": 10.0,
+      "vitesse": 700,
+      "sens": "arriere",
+      "blocage": "arriere",
+      "coefCourbe": 0.0,
+      "lissage": false,
+      "derapage": false,
+      "timeOut": 0,
+      "action": "null",
+      "attAction": false
+    },
+    {
+      "commentaire": "",
+      "type": "Angle",
+      "angle": 90,
+      "deltaAngle": 1.0,
+      "vitesse": 700,
+      "blocage": "aucun",
+      "timeOut": 0,
+      "action": "asserv",
+      "attAction": true
+    }
+  ]
+}

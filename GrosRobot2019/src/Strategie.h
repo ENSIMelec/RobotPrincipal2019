@@ -65,7 +65,7 @@ public:
 	void setPathfindingInAction(bool);
 	void convertNoeudsIntoPoints();
 	Point convertNodeIntoPoint(Noeud*);
-	void drawCurrentPath();
+	void drawCurrentPath(int );
 	void blockNodes(Noeud* centralPoint);
 	Graphe* getMaTable();
 	Noeud* getNoeudCurrentItineraire();
